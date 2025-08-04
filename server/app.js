@@ -1,20 +1,33 @@
 const express = require("express");
 const cors = require("cors");
-const path = require("path");
+const helmet = require("helmet");
+const rateLimit = require("express-rate-limit");
+const { CLIENT_URL } = require("./src/config/config");
 const errorHandler = require("./src/middlewares/errorHandler");
+const userRouter = require("./src/routes/userRoute");
 
 const app = express();
 
-// Middleware
-app.use(cors());
+const limiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  limit: 100,
+});
+
+//middlewares
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-
-// Serve static files
-app.use(express.static(path.join(__dirname, "public")));
+app.use(express.static("public"));
+app.use(
+  cors({
+    origin: CLIENT_URL,
+    credentials: true,
+  })
+);
+app.use(limiter);
+app.use(helmet());
 
 // Your routes here
-
+app.use("/auth", userRouter);
 
 // Error handler
 app.use(errorHandler);
