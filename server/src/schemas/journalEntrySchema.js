@@ -1,6 +1,6 @@
 const mongoose = require("mongoose");
 
-const journalEntry = new mongoose.Schema({
+const journalEntrySchema = new mongoose.Schema({
 
     title: { type: String, required: true, trim: true },
 
@@ -13,8 +13,22 @@ const journalEntry = new mongoose.Schema({
         default: [],
 
     },
+  likes: {
+  type: [
+    {
+      userId: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
+      createdAt: { type: Date, default: Date.now },
+    }
+  ],
+  default: [],
+},
+    comments: {
+        type: [mongoose.Schema.Types.ObjectId],
+        ref: "Comment",
+        default: [],
+    },
 
-    destinations: {
+    destination: {
 
         type: mongoose.Schema.Types.ObjectId,
 
@@ -38,4 +52,4 @@ const journalEntry = new mongoose.Schema({
 
 }, { timestamps: true });
 
-module.exports = journalEntry;
+module.exports = journalEntrySchema;

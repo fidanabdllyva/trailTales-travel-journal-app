@@ -8,6 +8,9 @@ const destinationSchema = new mongoose.Schema(
         dateVisited: { type: Date, default: null },
         status: {
             type: String,
+             enum: ['wishlist', 'planned', 'completed', 'cancelled'],
+             default: 'wishlist',
+             required: true
         },
         notes: { type: String, trim: true, default: '' },
         images:
@@ -23,7 +26,7 @@ const destinationSchema = new mongoose.Schema(
                 required: true,
             },
     }
-
+, { timestamps: true }
 )
 
 module.exports = destinationSchema;
