@@ -1,4 +1,7 @@
+const { required } = require("joi");
 const mongoose = require("mongoose");
+
+
 const travelListSchema = new mongoose.Schema(
     {
         title: { type: String, required: true, trim: true },
@@ -20,13 +23,14 @@ const travelListSchema = new mongoose.Schema(
         },
         coverImage: {
             type: String,
-            default:
-                "https://img.freepik.com/free-vector/default-cover-image_23-2148511230.jpg",
+            required: true,
         },
-        destinations: {
-            type: mongoose.Schema.Types.ObjectId,
-            ref: "Destination",
-        },
+        destinations: [
+            {
+                type: mongoose.Schema.Types.ObjectId,
+                ref: "Destination",
+            }
+        ],
         chat: {
             type: mongoose.Schema.Types.ObjectId,
             ref: "Chat",
