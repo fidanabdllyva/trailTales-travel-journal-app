@@ -9,7 +9,7 @@ const userSchema = new mongoose.Schema(
             trim: true,
             lowercase: true,
         },
-        password: { type: String, required: true },
+        password: { type: String},
         profileImage: {
             url: {
                 type: String,
