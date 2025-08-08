@@ -6,6 +6,8 @@ interface RegisterData {
   email: string;
   password: string;
   fullName: string;
+  username: string;
+  confirmPassword: string;
 }
 
 interface LoginData {
@@ -23,10 +25,21 @@ export const login= async (credentials: LoginData): Promise<AxiosResponse<AuthRe
 try {
   const response = await instance.post<AuthResponse>("/auth/login", credentials);
 
-  localStorage.setItem("token", response.data.accessToken)
 
   return response;
 } catch (error: any) {
    throw new Error(error.response?.data?.message || error.message || "Failed to login.")
 }
+}
+
+export const register = async (payload: RegisterData): Promise<AxiosResponse<AuthResponse>> => {
+  try {
+    const response = await instance.post<AuthResponse>("/auth/register", payload);
+
+    return response;
+    
+  } catch ( error: any) {
+    throw new Error(error.response?.data?.message || error.message || "Failed to register.")
+    
+  }
 }
