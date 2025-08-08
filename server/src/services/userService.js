@@ -30,7 +30,15 @@ const register = async (payload) => {
         success: false,
         message: "username or email already taken!",
       };
-    } else {
+      
+    } 
+    else if (payload.authProvider !== "local") {
+      return {  
+        success: false,
+        message: "authProvider should be local for registration!",
+      };
+    }
+    else {
       return {
         success: true,
         data: await UserModel.create(payload),
@@ -49,14 +57,14 @@ const verifyEmail = async (token) => {
     if (user.isVerified) {
       return {
         success: false,
-        message: "email already has been verified",
+        message: "Email already has been verified",
       };
     } else {
       user.isVerified = true;
       await user.save();
       return {
         success: true,
-        message: "email has been verified successfully!",
+        message: "Email has been verified successfully!",
       };
     }
   } else {
