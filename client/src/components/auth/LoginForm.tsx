@@ -1,7 +1,7 @@
 
 import { useState } from 'react'
 import { FaEye, FaEyeSlash, FaGoogle } from 'react-icons/fa'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { useFormik } from 'formik';
 import { login } from '@/api/requests/authService';
 import { loginValidationSchema } from '@/validations/loginValidationSchema';
@@ -10,21 +10,29 @@ import { API_BASE_URL } from '@/api/constants';
 
 const LoginForm = () => {
   const [showPassword, setShowPassword] = useState(false)
+  const navigate = useNavigate();
 
   const formik = useFormik({
     initialValues: {
       email: '',
-      password: ''
+      password: '',
+      rememberMe: false
     },
     validationSchema: loginValidationSchema,
     onSubmit: async (credentials) => {
       try {
         const response = await login(credentials)
-        console.log("Login successful:", response.data)
-        toast.success("Login successful!")
-      } catch (error:any) {
+        if (credentials.rememberMe) {
+          localStorage.setItem('token', response.data.accessToken) 
+        } else {
+          sessionStorage.setItem('token', response.data.accessToken)
+        }
+        toast.success(response.data.message || "Login successful!")
+        navigate('/dashboard') 
+
+      } catch (error: any) {
         console.error("Login failed:", error)
-       toast.error(error.message || "Login failed. Please try again.")
+        toast.error(error.message || "Login failed. Please try again.")
       }
     }
   })
@@ -70,11 +78,18 @@ const LoginForm = () => {
 
       <div className="flex justify-between items-center mb-4 text-sm">
         <label className="flex items-center gap-2">
-          <input type="checkbox" className="accent-blue-500" />
+          <input
+            type="checkbox"
+            name="rememberMe"
+            checked={formik.values.rememberMe}
+            onChange={formik.handleChange}
+            className="accent-blue-500"
+          />
+
           Remember me
         </label>
         <Link
-          to="/auth/forgot-password"
+          to="/forgot-password"
           className="text-blue-500 hover:underline"
         >
           Forgot password?
@@ -83,7 +98,8 @@ const LoginForm = () => {
 
       <button
         type="submit"
-        className="w-full bg-gradient-to-r from-cyan-400 via-purple-500 to-green-300 text-white py-2 rounded-lg font-medium hover:opacity-90 transition"
+        disabled={!formik.isValid || formik.isSubmitting}
+        className="w-full bg-gradient-to-r cursor-pointer disabled:cursor-not-allowed from-cyan-400 via-purple-500 to-green-300 text-white py-2 rounded-lg font-medium hover:opacity-90 transition"
       >
         Sign In
       </button>

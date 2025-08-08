@@ -44,7 +44,7 @@ const ROUTES=[
                 element:<ResetPassword/>
             },
             {
-                path:"verify-email",
+                path:"email-verified",
                 element:<VerifyEmail/>
             }
         ]
