@@ -19,6 +19,7 @@ import MyJournals from "@/pages/client/MyJournals";
 import MyLists from "@/pages/client/MyLists";
 import Profile from "@/pages/client/Profile";
 import TravelList from "@/pages/client/TravelList";
+import AuthCallback from "@/pages/auth/AuthCallback";
 
 const ROUTES=[
     //Auth Routes
@@ -33,6 +34,10 @@ const ROUTES=[
             {
                 path:"forgot-password",
                 element:<ForgotPassword/>
+            },
+             {
+                path:"success/:token",
+                element:<AuthCallback/>
             },
             {
                 path:"reset-password/:token",

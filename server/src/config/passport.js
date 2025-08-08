@@ -1,4 +1,3 @@
-//google auth config
 const passport = require("passport");
 const GoogleStrategy = require("passport-google-oauth20").Strategy;
 const UserModel = require("../models/userModel");
@@ -17,7 +16,7 @@ passport.use(
         },
         async (accessToken, refreshToken, profile, done) => {
             try {
-                const existingUser = await UserModel.findOne({ googleId: profile.id });
+                const existingUser = await UserModel.findOne({ authId: profile.id, authProvider: "google"});
 
                 if (existingUser) {
                     return done(null, existingUser);
