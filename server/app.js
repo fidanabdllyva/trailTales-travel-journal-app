@@ -5,6 +5,7 @@ const rateLimit = require("express-rate-limit");
 const { CLIENT_URL } = require("./src/config/config");
 const errorHandler = require("./src/middlewares/errorHandler");
 const userRouter = require("./src/routes/userRoute");
+const travelListRouter = require("./src/routes/travelListRoute");
 
 const app = express();
 
@@ -28,6 +29,7 @@ app.use(helmet());
 
 // Your routes here
 app.use("/auth", userRouter);
+app.use("/lists", travelListRouter);
 
 // Error handler
 app.use(errorHandler);
