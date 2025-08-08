@@ -6,6 +6,7 @@ const { CLIENT_URL } = require("./src/config/config");
 const errorHandler = require("./src/middlewares/errorHandler");
 const userRouter = require("./src/routes/userRoute");
 const travelListRouter = require("./src/routes/travelListRoute");
+const googleAuthRoute = require("./src/routes/googleAuthRoute");
 
 const app = express();
 
@@ -30,6 +31,7 @@ app.use(helmet());
 // Your routes here
 app.use("/auth", userRouter);
 app.use("/lists", travelListRouter);
+app.use("/auth", googleAuthRoute); 
 
 // Error handler
 app.use(errorHandler);

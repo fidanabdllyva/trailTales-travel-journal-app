@@ -194,7 +194,6 @@ exports.refresh = (req, res) => {
     const accessToken = generateAccessToken({
       email: user.email,
       id: user._id,
-      role: user.role,
       fullName: user.fullName,
     });
     return res.json({ accessToken });

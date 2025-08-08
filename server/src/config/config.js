@@ -14,4 +14,6 @@ module.exports = {
     GMAIL_APP_NAME: process.env.GMAIL_APP_NAME,
     GMAIL_USER: process.env.GMAIL_USER,
     SERVER_URL: process.env.SERVER_URL,
+    GOOGLE_CLIENT_ID: process.env.GOOGLE_CLIENT_ID,
+    GOOGLE_CLIENT_SECRET: process.env.GOOGLE_CLIENT_SECRET,
 }
