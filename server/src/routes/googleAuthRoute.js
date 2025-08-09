@@ -30,6 +30,10 @@ router.get("/google/callback", (req, res, next) => {
       id: user._id,
       email: user.email,
       fullName: user.fullName,
+      profileImage: user.profileImage,
+      premium: user.premium,
+      authProvider: user.authProvider,
+      username: user.username,
     });
 
     res.redirect(`${CLIENT_URL}/success/${accessToken}`);

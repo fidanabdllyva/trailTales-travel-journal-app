@@ -62,3 +62,11 @@ export const resetPassword = async (email: string, newPassword: string): Promise
     throw new Error(error.response?.data?.message || error.message || "Failed to reset password.");
   }
 }
+
+export const logout = async (): Promise<void> => {
+  try {
+    await instance.post(`${endpoints.auth}/logout`);
+  } catch (error: any) {
+    throw new Error(error.response?.data?.message || error.message || "Failed to logout.");
+  }
+};

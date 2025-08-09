@@ -82,6 +82,7 @@ exports.registerUser = async (req, res, next) => {
         id: response.data._id,
         email: req.body.email,
         fullName: req.body.fullName,
+        
       },
       "6h"
     );

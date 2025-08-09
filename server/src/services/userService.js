@@ -30,10 +30,10 @@ const register = async (payload) => {
         success: false,
         message: "username or email already taken!",
       };
-      
-    } 
+
+    }
     else if (payload.authProvider !== "local") {
-      return {  
+      return {
         success: false,
         message: "authProvider should be local for registration!",
       };
@@ -171,9 +171,13 @@ const login = async (credentials) => {
   await user.save();
   //implement refresh token
   const accessToken = generateAccessToken({
-    email: user.email,
     id: user._id,
+    email: user.email,
     fullName: user.fullName,
+    profileImage: user.profileImage,
+    premium: user.premium,
+    authProvider: user.authProvider,
+    username: user.username,
   });
   const refreshToken = generateRefreshToken({
     email: user.email,
@@ -213,16 +217,16 @@ const resetPassword = async (newPassword, email) => {
   const hashedPassword = await bcrypt.hash(newPassword, saltRounds);
   user.password = hashedPassword;
   await user.save();
-  return user 
+  return user
 }
 
 module.exports = {
-    getAll,
-    getOne,
-    register,
-    verifyEmail,
-    login,
-    forgotPassword,
-    resetPassword,
-    unlockAcc,
+  getAll,
+  getOne,
+  register,
+  verifyEmail,
+  login,
+  forgotPassword,
+  resetPassword,
+  unlockAcc,
 }

@@ -10,7 +10,7 @@ export interface User {
   premium: boolean;
   lists?: string[]; 
   isVerified: boolean;
-  authProvider: 'google' | 'apple' | 'local';
+  authProvider: 'google' |  'local';
   authId?: string | null;
   fullName: string;
   loginAttempts: number;
