@@ -200,7 +200,7 @@ const forgotPassword = async (email) => {
       },
       "30m"
     );
-    const resetPasswordLink = `${CLIENT_URL}/auth/reset-password/${token}`;
+    const resetPasswordLink = `${CLIENT_URL}/reset-password/${token}`;
     sendForgotPasswordEmail(email, resetPasswordLink);
   }
 };

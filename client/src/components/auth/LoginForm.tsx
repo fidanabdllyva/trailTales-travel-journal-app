@@ -101,7 +101,7 @@ const LoginForm = () => {
         disabled={!formik.isValid || formik.isSubmitting}
         className="w-full bg-gradient-to-r cursor-pointer disabled:cursor-not-allowed from-cyan-400 via-purple-500 to-green-300 text-white py-2 rounded-lg font-medium hover:opacity-90 transition"
       >
-        Sign In
+        {formik.isSubmitting ? "Logging in..." : "Login"}
       </button>
 
       <div className="my-4 text-sm text-gray-400">

@@ -69,6 +69,8 @@ exports.registerUser = async (req, res, next) => {
     const response = await register({
       ...req.body,
       password: hashedPassword,
+      authProvider: "local",
+      
     });
     if (!response.success) {
       throw new Error(response.message);
@@ -139,7 +141,7 @@ exports.unlockAccount = async (req, res, next) => {
   try {
     const { token } = req.query;
     const response = await unlockAcc(token); //success, message
-    res.redirect(`${CLIENT_URL}/auth/login?message=${response.message}`);
+    res.redirect(`${CLIENT_URL}/?message=${response.message}`);
   } catch (error) {
     next(error);
   }

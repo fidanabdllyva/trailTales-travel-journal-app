@@ -35,8 +35,9 @@ const RegisterForm = () => {
             try {
                 const response = await register(payload)
                 toast.success(response.data.message || "Registration successful!")
-
+                
             } catch (error: any) {
+                console.log(payload)
                 console.error("Login failed:", error)
                 toast.error(error.message || "Login failed. Please try again.")
             }
@@ -166,8 +167,6 @@ const RegisterForm = () => {
   </>
 )}
 
-
-
             {/* Confirm Password */}
             <div className="relative mt-3 mb-3">
                 <input
@@ -216,7 +215,7 @@ const RegisterForm = () => {
                 disabled={!formik.isValid || formik.isSubmitting}
                 className="w-full bg-gradient-to-r cursor-pointer disabled:cursor-not-allowed from-cyan-400 via-purple-500 to-green-300 text-white py-2 rounded-lg font-medium hover:opacity-90 transition"
             >
-                Create Account
+                {formik.isSubmitting ? "Registering..." : "Create Account"}
             </button>
 
             {/* Divider */}
