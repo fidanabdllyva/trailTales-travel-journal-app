@@ -1,4 +1,3 @@
-
 import { useState } from 'react'
 import { FaEye, FaEyeSlash, FaGoogle } from 'react-icons/fa'
 import { Link, useNavigate } from 'react-router-dom'
@@ -7,35 +6,74 @@ import { login } from '@/api/requests/authService';
 import { loginValidationSchema } from '@/validations/loginValidationSchema';
 import { toast } from 'sonner';
 import { API_BASE_URL } from '@/api/constants';
+import { useDispatch } from 'react-redux';
+import { jwtDecode } from 'jwt-decode';
+import { setUser } from '@/redux/features/userSlice';
 
 const LoginForm = () => {
   const [showPassword, setShowPassword] = useState(false)
   const navigate = useNavigate();
+  const dispatch= useDispatch()
 
   const formik = useFormik({
     initialValues: {
-      email: '',
-      password: '',
-      rememberMe: false
+      email: "",
+      password: "",
+      rememberMe: false,
     },
     validationSchema: loginValidationSchema,
     onSubmit: async (credentials) => {
       try {
-        const response = await login(credentials)
-        if (credentials.rememberMe) {
-          localStorage.setItem('token', response.data.accessToken) 
-        } else {
-          sessionStorage.setItem('token', response.data.accessToken)
-        }
-        toast.success(response.data.message || "Login successful!")
-        navigate('/dashboard') 
+        const response = await login(credentials);
+        const token = response.data.accessToken;
 
+        // Store token depending on rememberMe
+        if (credentials.rememberMe) {
+          localStorage.setItem("token", token);
+          sessionStorage.removeItem("token");
+        } else {
+          sessionStorage.setItem("token", token);
+          localStorage.removeItem("token");
+        }
+
+        // Decode token to get user info
+        const decoded: {
+          id: string;
+          email: string;
+          fullName: string;
+          profileImage: string;
+          premium: boolean;
+          username: string;
+          authProvider: "google" | "local";
+          iat: number;
+          exp: number;
+        } = jwtDecode(token);
+
+        // Dispatch setUser action with decoded data + token + rememberMe flag
+        dispatch(
+          setUser({
+            id: decoded.id,
+            email: decoded.email,
+            fullName: decoded.fullName,
+            profileImage: decoded.profileImage,
+            premium: decoded.premium,
+            authProvider: decoded.authProvider,
+            username: decoded.username,
+            token,
+            rememberMe: credentials.rememberMe,
+          })
+        );
+
+        toast.success(response.data.message || "Login successful!");
+        navigate("/dashboard");
       } catch (error: any) {
-        console.error("Login failed:", error)
-        toast.error(error.message || "Login failed. Please try again.")
+        console.error("Login failed:", error);
+        toast.error(error.message || "Login failed. Please try again.");
       }
-    }
-  })
+    },
+  });
+
+  // ...rest of your component JSX
   return (
     <form onSubmit={formik.handleSubmit}>
       <div className='mb-2'>
