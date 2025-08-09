@@ -137,7 +137,7 @@ const sendForgotPasswordEmail = async (toEmail, resetPasswordLink) => {
       <div style="font-family: 'Segoe UI', sans-serif; background-color: #f0f2f5; padding: 40px;">
         <div style="max-width: 600px; margin: auto; background-color: #ffffff; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
           
-          <div style="background-color: #48b1bf; padding: 24px; color: white; text-align: center;">
+          <div style="background-color: #06beb6; padding: 24px; color: white; text-align: center;">
             <h2 style="margin: 0;">Reset Your Password</h2>
           </div>
 
@@ -152,7 +152,7 @@ const sendForgotPasswordEmail = async (toEmail, resetPasswordLink) => {
 
             <div style="text-align: center; margin: 30px 0;">
               <a href="${resetPasswordLink}" target="_blank" 
-                style="background-color: #e67e22; color: #ffffff; padding: 14px 28px; text-decoration: none; border-radius: 8px; font-weight: bold; font-size: 16px;">
+                style="background-color: #e67; color: #ffffff; padding: 14px 28px; text-decoration: none; border-radius: 8px; font-weight: bold; font-size: 16px;">
                 Reset Password
               </a>
             </div>

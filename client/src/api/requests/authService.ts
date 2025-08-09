@@ -1,7 +1,8 @@
 import  { type AxiosResponse } from "axios";
 import instance from "../instance";
+import { endpoints } from "../constants";
 
-
+//types
 interface RegisterData {
   email: string;
   password: string;
@@ -23,7 +24,7 @@ interface AuthResponse {
 
 export const login= async (credentials: LoginData): Promise<AxiosResponse<AuthResponse>> => {
 try {
-  const response = await instance.post<AuthResponse>("/auth/login", credentials);
+  const response = await instance.post<AuthResponse>(`${endpoints.auth}/login`, credentials);
 
 
   return response;
@@ -34,12 +35,30 @@ try {
 
 export const register = async (payload: RegisterData): Promise<AxiosResponse<AuthResponse>> => {
   try {
-    const response = await instance.post<AuthResponse>("/auth/register", payload);
+    const response = await instance.post<AuthResponse>(`${endpoints.auth}/register`, payload);
 
     return response;
     
   } catch ( error: any) {
     throw new Error(error.response?.data?.message || error.message || "Failed to register.")
     
+  }
+}
+
+export const forgotPassword = async (email: string): Promise<AxiosResponse<{ message: string }>> => {
+  try {
+    const response = await instance.post<{ message: string }>(`${endpoints.auth}/forgot-password`, { email });
+    return response;
+  } catch (error: any) {
+    throw new Error(error.response?.data?.message || error.message || "Failed to send reset password email.");
+  }
+};
+
+export const resetPassword = async (email: string, newPassword: string): Promise<AxiosResponse<{ message: string }>> => {
+  try {
+    const response = await instance.post<{ message: string }>(`${endpoints.auth}/reset-password`, { email, newPassword });
+    return response;
+  } catch (error: any) {
+    throw new Error(error.response?.data?.message || error.message || "Failed to reset password.");
   }
 }
