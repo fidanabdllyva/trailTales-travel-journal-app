@@ -9,6 +9,7 @@ function LoginRegister() {
   const [activeTab, setActiveTab] = useState<"login" | "register">("login")
   const [searchParams] = useSearchParams();
   const error = searchParams.get("error");
+   const message = searchParams.get("message");
 
   useEffect(() => {
     if (error === "local_account_exists") {
@@ -17,6 +18,9 @@ function LoginRegister() {
       );
     } else if (error === "google_failed") {
       toast.error("Google login failed. Please try again.");
+    }
+    if (message) {
+      toast.success(message);
     }
   }, [error]);
 

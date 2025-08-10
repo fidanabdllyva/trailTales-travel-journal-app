@@ -21,12 +21,19 @@ import Profile from "@/pages/client/Profile";
 import TravelList from "@/pages/client/TravelList";
 import AuthCallback from "@/pages/auth/AuthCallback";
 import CreateList from "@/pages/client/CreateList";
+import ProtectedRoute from "@/components/client/ProtectedRoute";
+import RedirectIfAuth from "@/components/auth/RedirectIfAuth";
 
 const ROUTES = [
     //Auth Routes
     {
         path: "/",
-        element: <AuthLayout />,
+        element:
+        (
+            <RedirectIfAuth>
+                <AuthLayout />
+            </RedirectIfAuth>
+        ),
         children: [
             {
                 index: true,
@@ -54,7 +61,11 @@ const ROUTES = [
     //Client Routes
     {
         path: "/",
-        element: <ClientLayout />,
+        element: (
+            <ProtectedRoute>
+                <ClientLayout />
+            </ProtectedRoute>
+        ),
         children: [
             {
                 path: "dashboard",
