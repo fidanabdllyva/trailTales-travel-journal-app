@@ -70,3 +70,19 @@ export const logout = async (): Promise<void> => {
     throw new Error(error.response?.data?.message || error.message || "Failed to logout.");
   }
 };
+
+
+interface RefreshResponse {
+  accessToken: string;
+}
+
+export const refreshToken = async (): Promise<AxiosResponse<RefreshResponse>> => {
+  try {
+    const response = await instance.post<RefreshResponse>(`${endpoints.auth}/refresh`);
+    return response;
+  } catch (error: any) {
+    throw new Error(error.response?.data?.message || error.message || "Failed to refresh token.");
+  }
+};
+
+

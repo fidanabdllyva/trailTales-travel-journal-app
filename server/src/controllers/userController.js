@@ -1,5 +1,5 @@
 
-const { CLIENT_URL } = require("../config/config");
+const { CLIENT_URL, NODE_ENV } = require("../config/config");
 const bcrypt = require("bcrypt");
 const formatMongoData = require("../utils/formatMongoData");
 const { sendVerificationEmail } = require("../utils/mailService");
@@ -70,7 +70,7 @@ exports.registerUser = async (req, res, next) => {
       ...req.body,
       password: hashedPassword,
       authProvider: "local",
-      
+
     });
     if (!response.success) {
       throw new Error(response.message);
@@ -82,7 +82,7 @@ exports.registerUser = async (req, res, next) => {
         id: response.data._id,
         email: req.body.email,
         fullName: req.body.fullName,
-        
+
       },
       "6h"
     );
@@ -101,8 +101,8 @@ exports.registerUser = async (req, res, next) => {
 exports.verifyEmail = async (req, res, next) => {
   try {
     const { token } = req.query;
-    const response = await verifyEmail(token); 
-  
+    const response = await verifyEmail(token);
+
     res.redirect(`${CLIENT_URL}/email-verified?message=${response.message}`);
   } catch (error) {
     next(error);
@@ -132,7 +132,7 @@ exports.resetPassword = async (req, res, next) => {
     res.status(200).json({
       message: "password reset successfully!",
     });
-    
+
   } catch (error) {
     next(error);
   }
@@ -159,12 +159,12 @@ exports.login = async (req, res, next) => {
     console.log("RESPONSE ON SERVER: ", response);
 
     // Set refresh token cookie (HttpOnly)
-    res.cookie("refreshToken", response.refreshToken, {
+     res.cookie("refreshToken", response.refreshToken, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === "production", // only HTTPS in prod
-      sameSite: "strict",
+      secure: NODE_ENV === "production", // false in dev, true in prod
+      sameSite: NODE_ENV === "production" ? "none" : "lax", // none for cross-site
       maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
-      path: "/auth/refresh", 
+      path: "/", // send cookie to all paths
     });
 
     return res.status(200).json({
@@ -193,20 +193,27 @@ exports.refresh = (req, res) => {
     if (!user) {
       return res.status(403).json({ message: "invalid or expired token!" });
     }
-
     const accessToken = generateAccessToken({
-      email: user.email,
       id: user._id,
+      email: user.email,
       fullName: user.fullName,
+      username: user.username,
+      profileImage: user.profileImage,
     });
     return res.json({ accessToken });
   });
 };
 
 exports.logout = (_, res) => {
-  res.clearCookie("refreshToken", { path: "/auth/refresh" });
+  res.clearCookie("refreshToken", {
+    path: "/", // matches the set cookie
+    secure: NODE_ENV === "production",
+    sameSite: NODE_ENV === "production" ? "none" : "lax",
+    httpOnly: true
+  });
   return res.status(200).json({ message: "logged out successfully!" });
 };
+
 
 exports.getCurrentUser = async (req, res, next) => {
   try {

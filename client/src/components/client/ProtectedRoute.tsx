@@ -11,7 +11,7 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
   const isAuthenticated = useSelector((state: RootState) => state.auth.isAuthenticated);
 
   if (!isAuthenticated) {
-    return <Navigate to="/" replace />;  // or "/login" if that's your landing page
+    return <Navigate to="/" replace />;  
   }
 
   return <>{children}</>;
