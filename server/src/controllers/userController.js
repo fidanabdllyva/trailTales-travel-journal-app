@@ -207,3 +207,23 @@ exports.logout = (_, res) => {
   res.clearCookie("refreshToken", { path: "/auth/refresh" });
   return res.status(200).json({ message: "logged out successfully!" });
 };
+
+exports.getCurrentUser = async (req, res, next) => {
+  try {
+    const user = await getOne(req.user.id);
+
+    if (!user) {
+      return res.status(404).json({
+        message: "User not found",
+        data: null,
+      });
+    }
+
+    res.status(200).json({
+      message: "Current user retrieved successfully",
+      data: formatMongoData(user),
+    });
+  } catch (error) {
+    next(error);
+  }
+};

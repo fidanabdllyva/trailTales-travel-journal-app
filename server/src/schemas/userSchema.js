@@ -9,16 +9,14 @@ const userSchema = new mongoose.Schema(
             trim: true,
             lowercase: true,
         },
-        password: { type: String},
+        password: { type: String },
         profileImage: {
-            url: {
-                type: String,
-                default:
-                    'https://upload.wikimedia.org/wikipedia/commons/7/7c/Profile_avatar_placeholder_large.png?20150327203541',
-            },
-            public_id: {
-                type: String,
-            },
+            type: String,
+            default:
+                'https://upload.wikimedia.org/wikipedia/commons/7/7c/Profile_avatar_placeholder_large.png?20150327203541',
+        },
+        public_id: {
+            type: String,
         },
         premium: { type: Boolean, default: false },
         lists: [
@@ -30,7 +28,7 @@ const userSchema = new mongoose.Schema(
         isVerified: { type: Boolean, default: false },
         authProvider: {
             type: String,
-            enum: ['google','local'],
+            enum: ['google', 'local'],
             default: 'local',
             required: true,
         },

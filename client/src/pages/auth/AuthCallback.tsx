@@ -1,68 +1,49 @@
 import { useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { jwtDecode } from "jwt-decode";
-// import { useDispatch } from "react-redux";
-// import { setUser } from "../../features/userSlice";
+import { useDispatch } from "react-redux";
+import { toast } from "sonner";
+import { setUser } from "@/redux/features/authSlice";
 
 const AuthCallback = () => {
   const navigate = useNavigate();
-//   const dispatch = useDispatch();
+  const dispatch = useDispatch();
   const { token } = useParams();
   useEffect(() => {
     if (token) {
       try {
         const decoded: {
-          role: string;
           email: string;
           fullName: string;
           profileImage: string;
+          username: string;
           id: string;
           iat: number;
           exp: number;
         } = jwtDecode(token);
 
         localStorage.setItem("token", JSON.stringify(token));
-        // enqueueSnackbar("Google login successful", {
-        //   variant: "success",
-        //   autoHideDuration: 2000,
-        //   anchorOrigin: {
-        //     horizontal: "right",
-        //     vertical: "bottom",
-        //   },
-        // });
+      toast.success("Google login successful");
 
-        // dispatch(
-        //   setUser({
-        //     id: decoded.id,
-        //     email: decoded.email,
-        //     role: decoded.role,
-        //     fullName: decoded.fullName,
-        //     profileImage: decoded.profileImage,
-        //     token: token,
-        //   })
-        // );
+        dispatch(
+          setUser({
+               id: decoded.id,
+            email: decoded.email,
+            fullName: decoded.fullName,
+            profileImage: decoded.profileImage,
+            username: decoded.username || decoded.email.split("@")[0],
+            token,
+            rememberMe: true,
+          })
+        );
         navigate("/dashboard");
       } catch (err) {
         console.log("error: ", err);
-        // enqueueSnackbar("Invalid token", {
-        //   variant: "error",
-        //   autoHideDuration: 2000,
-        //   anchorOrigin: {
-        //     vertical: "bottom",
-        //     horizontal: "right",
-        //   },
-        // });
+       toast.error("Invalid token");
         navigate("/");
       }
     } else {
-    //   enqueueSnackbar("Token not found", {
-    //     variant: "error",
-    //     autoHideDuration: 2000,
-    //     anchorOrigin: {
-    //       vertical: "bottom",
-    //       horizontal: "right",
-    //     },
-    //   });
+      toast.error("No token provided");
       navigate("/");
     }
   }, [navigate, token]);

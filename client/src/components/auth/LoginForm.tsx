@@ -8,7 +8,8 @@ import { toast } from 'sonner';
 import { API_BASE_URL } from '@/api/constants';
 import { useDispatch } from 'react-redux';
 import { jwtDecode } from 'jwt-decode';
-import { setUser } from '@/redux/features/userSlice';
+import { setUser } from '@/redux/features/authSlice';
+import { fetchUserProfile } from '@/redux/features/userSlice';
 
 const LoginForm = () => {
   const [showPassword, setShowPassword] = useState(false)
@@ -42,27 +43,27 @@ const LoginForm = () => {
           email: string;
           fullName: string;
           profileImage: string;
-          premium: boolean;
           username: string;
-          authProvider: "google" | "local";
           iat: number;
           exp: number;
         } = jwtDecode(token);
 
-        // Dispatch setUser action with decoded data + token + rememberMe flag
+        // Set auth state
         dispatch(
           setUser({
             id: decoded.id,
             email: decoded.email,
             fullName: decoded.fullName,
             profileImage: decoded.profileImage,
-            premium: decoded.premium,
-            authProvider: decoded.authProvider,
             username: decoded.username,
             token,
             rememberMe: credentials.rememberMe,
           })
         );
+
+        // Fetch user profile data
+        // @ts-ignore - Type issues with thunk actions can be ignored here
+        await dispatch(fetchUserProfile());
 
         toast.success(response.data.message || "Login successful!");
         navigate("/dashboard");
@@ -73,7 +74,6 @@ const LoginForm = () => {
     },
   });
 
-  // ...rest of your component JSX
   return (
     <form onSubmit={formik.handleSubmit}>
       <div className='mb-2'>

@@ -33,7 +33,7 @@ passport.use(
           fullName: profile.displayName,
           email,
           username: email.split("@")[0],
-          profileImage: { url: profile.photos?.[0]?.value },
+          profileImage: profile.photos?.[0]?.value,
           authId: profile.id,
           authProvider: "google",
           isVerified: true,
