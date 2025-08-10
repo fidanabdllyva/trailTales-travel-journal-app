@@ -174,10 +174,8 @@ const login = async (credentials) => {
     id: user._id,
     email: user.email,
     fullName: user.fullName,
-    profileImage: user.profileImage,
-    premium: user.premium,
-    authProvider: user.authProvider,
     username: user.username,
+    profileImage: user.profileImage,
   });
   const refreshToken = generateRefreshToken({
     email: user.email,

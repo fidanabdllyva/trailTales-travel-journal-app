@@ -2,8 +2,8 @@ import { useEffect, useState } from "react"
 import { motion, AnimatePresence } from "framer-motion"
 import LoginForm from "@/components/auth/LoginForm"
 import RegisterForm from "@/components/auth/RegisterForm"
-import { useSearchParams } from "react-router"
-import { toast } from 'sonner';
+import { useSearchParams } from "react-router-dom"
+import { toast } from "sonner"
 
 function LoginRegister() {
   const [activeTab, setActiveTab] = useState<"login" | "register">("login")
@@ -19,6 +19,8 @@ function LoginRegister() {
       toast.error("Google login failed. Please try again.");
     }
   }, [error]);
+
+
   return (
     <>
 

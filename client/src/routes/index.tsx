@@ -20,76 +20,81 @@ import MyLists from "@/pages/client/MyLists";
 import Profile from "@/pages/client/Profile";
 import TravelList from "@/pages/client/TravelList";
 import AuthCallback from "@/pages/auth/AuthCallback";
+import CreateList from "@/pages/client/CreateList";
 
-const ROUTES=[
+const ROUTES = [
     //Auth Routes
     {
         path: "/",
-        element:<AuthLayout />,
-        children:[
+        element: <AuthLayout />,
+        children: [
             {
-                index:true,
-                element:<LoginRegister/>
+                index: true,
+                element: <LoginRegister />
             },
             {
-                path:"forgot-password",
-                element:<ForgotPassword/>
-            },
-             {
-                path:"success/:token",
-                element:<AuthCallback/>
+                path: "forgot-password",
+                element: <ForgotPassword />
             },
             {
-                path:"reset-password/:token",
-                element:<ResetPassword/>
+                path: "success/:token",
+                element: <AuthCallback />
             },
             {
-                path:"email-verified",
-                element:<VerifyEmail/>
+                path: "reset-password/:token",
+                element: <ResetPassword />
+            },
+            {
+                path: "email-verified",
+                element: <VerifyEmail />
             }
         ]
     },
 
     //Client Routes
     {
-        path:"/",
-        element:<ClientLayout/>,
-        children:[
+        path: "/",
+        element: <ClientLayout />,
+        children: [
             {
-                path:"dashboard",
-                element:<Dashboard/>
+                path: "dashboard",
+                element: <Dashboard />
             },
             {
-                path:"profile",
-                element:<Profile/>
+                path: "profile",
+                element: <Profile />
             },
             {
-                path:"explore",
-                element:<Explore/>
+                path: "explore",
+                element: <Explore />
             },
             {
-                path:"my-lists",
-                element:<MyLists/>
+                path: "my-lists",
+                element: <MyLists />
             },
             {
-                path:"travel-list/:id",
-                element:<TravelList/>
+                path: "travel-list/:id",
+                element: <TravelList />
             },
             {
-                path:"my-journals",
-                element:<MyJournals/>
+                path: "travel-list/create",
+                element: <CreateList />
             },
             {
-                path:"journal/:id",
-                element:<JournalDetail/>
+                path: "my-journals",
+                element: <MyJournals />
+            },
+            {
+                path: "journal/:id",
+                element: <JournalDetail />
             }
         ]
     },
 
     //not found
     {
-        path:"*",
-        element:<NotFound/>
+        path: "*",
+        element: <NotFound />
     }
 ]
 

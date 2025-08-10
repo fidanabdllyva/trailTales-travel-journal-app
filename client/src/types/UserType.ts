@@ -3,10 +3,8 @@ export interface User {
   username: string;
   email: string;
   password?: string; 
-  profileImage: {
-    url: string;
-    public_id?: string;
-  };
+  profileImage: string;
+  public_id:string;
   premium: boolean;
   lists?: string[]; 
   isVerified: boolean;
