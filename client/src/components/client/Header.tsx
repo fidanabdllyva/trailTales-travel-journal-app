@@ -85,7 +85,7 @@ console.log(userData , "userData in header");
 
       <div className="flex items-center space-x-4">
         <div className="flex items-center space-x-2 border px-2 rounded-md bg-white shadow-sm focus-within:ring-2 focus-within:ring-blue-500 focus-within:ring-offset-0">
-          <Search className="text-gray-800 w-5 h-5" />
+          <Search className="text-gray-400 w-4 h-4" />
           <input
             type="text"
             placeholder="Search destinations, lists..."
@@ -94,7 +94,7 @@ console.log(userData , "userData in header");
         </div>
 
         <Link to={"/travel-list/create"} className="flex items-center">
-          <Button className="flex items-center w-25 space-x-1 bg-gradient-to-r from-blue-500 to-purple-500 text-white">
+          <Button className="flex items-center cursor-pointer space-x-1 bg-gradient-to-r from-blue-500 to-purple-500 text-white">
             <Plus className="w-4 h-4" />
             <span>Create</span>
           </Button>
