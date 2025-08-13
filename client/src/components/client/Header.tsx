@@ -36,8 +36,7 @@ export default function Header() {
     }
   }, [ dispatch]);
 
-  console.log(userData, "userData in Header");
-
+console.log(userData , "userData in header");
   const handleLogout = async () => {
     try {
       await logout();

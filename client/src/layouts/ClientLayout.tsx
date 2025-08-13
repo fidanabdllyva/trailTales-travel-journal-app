@@ -6,8 +6,9 @@ const ClientLayout = () => {
     <>
       <Header />
 
-
-      <Outlet />
+      <div className="bg-gray-50 min-h-screen">
+        <Outlet />
+      </div>
 
 
     </>

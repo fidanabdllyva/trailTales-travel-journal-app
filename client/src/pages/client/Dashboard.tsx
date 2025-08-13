@@ -14,13 +14,11 @@ const Dashboard = () => {
   );
 
 useEffect(() => {
-  console.log("token:", token, "status:", userStatus, "auth:", isAuthenticated);
   if (!token || !isAuthenticated) {
     navigate("/");
     return;
   }
   if (userStatus === "idle") {
-    console.log("Dispatching fetchUserProfile");
     // @ts-ignore - Type issues with thunk actions can be ignored here
     dispatch(fetchUserProfile());
   }
