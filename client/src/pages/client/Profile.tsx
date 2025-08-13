@@ -1,11 +1,10 @@
 import { useState } from "react";
 import {
-  MapPin,
+  AtSign,
   Calendar,
   Camera,
   Pencil,
 } from "lucide-react";
-
 import {
   Avatar,
   AvatarFallback,
@@ -15,131 +14,117 @@ import {
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Card, CardContent } from "@/components/ui/card";
+import type { RootState } from "@/redux/store";
+import { useSelector } from "react-redux";
+import moment from "moment";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog"
+import ProfileLocation from "@/components/client/ProfileLocation";
+import LoadingSpinner from "@/components/common/LoadingSpinner";
+import { FaTimes } from "react-icons/fa";
+import ProfileSocials from "@/components/client/ProfileSocials";
+import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
+import EditProfile from "@/components/client/EditProfile";
+import ProfileAvatar from "@/components/client/ProfileImage";
+
 
 const ProfilePage = () => {
-  const [activeTab, setActiveTab] = useState("recent");
+  const { data: user, status: userStatus } = useSelector(
+    (state: RootState) => state.user
+  );
 
-  const user = {
-    name: "John Doe",
-    location: "San Francisco, CA",
-    memberSince: "January 2024",
-    bio: "Travel enthusiast exploring the world one destination at a time. Love discovering hidden gems and sharing travel tips!",
-    website: "johndoe.travel",
-    instagram: "@johndoe_travels",
-    twitter: "@johndoe",
-    stats: {
-      destinations: 26,
-      completed: 11,
-      lists: 3,
-      entries: 8,
-      followers: 124,
-      following: 89,
-    },
-    recentActivity: [
-      {
-        id: 1,
-        title: "Added new journal entry",
-        description: "A Perfect Day in Paris",
-        date: "1/20/2024",
-        tag: "journal",
-      },
-      {
-        id: 2,
-        title: "Completed destination",
-        description: "Rome, Italy",
-        date: "1/18/2024",
-        tag: "destination",
-      },
-    ],
-  };
+  if (userStatus === "loading") return <LoadingSpinner />;
+  if (!user) return <div>No user data found.</div>;
 
   return (
-    <div className="max-w-7xl mx-auto p-6">
+    <div className="max-w-7xl mx-auto p-6 ">
       {/* Profile card */}
-      <Card className="flex flex-col md:flex-row items-center md:items-start space-y-6 md:space-y-0 md:space-x-10 p-6">
+      <Card className="flex flex-col md:flex-row items-center  space-y-6 md:space-y-0 md:space-x-10 p-6">
         {/* Avatar */}
-        <div className="flex flex-col items-center gap-4">
-
-            <p>@username</p>
-
         <div className="relative">
-          <Avatar className="w-28 h-28">
-            {/* Replace with AvatarImage if you have user photo */}
-            <AvatarFallback>{user.name.split(" ").map(n => n[0]).join("")}</AvatarFallback>
+          {/* <Avatar className="w-28 h-28">
+            <AvatarImage src={user.profileImage} alt={user.fullName} />
+            <AvatarFallback>{user.fullName.split(" ").map(n => n[0]).join("")}</AvatarFallback>
           </Avatar>
           <Button
             size="icon"
             variant="secondary"
-            className="absolute bottom-0 right-0 rounded-full p-2 bg-black bg-opacity-70 hover:bg-opacity-90"
+            className="absolute bottom-0 right-0 rounded-full p-2 bg-black  hover:bg-opacity-90"
             aria-label="Upload photo"
           >
             <Camera className="w-5 h-5 text-white" />
-          </Button>
+          </Button> */}
+
+          <ProfileAvatar user={user} />
         </div>
-        </div>
+
 
         {/* User info */}
         <div className="flex-1 w-full">
           <div className="flex justify-between items-start">
-            <h1 className="text-3xl font-bold">{user.name}</h1>
-            <Button variant="default" size="sm" className="flex items-center gap-2">
-              <Pencil className="w-5 h-5" />
-              Edit Profile
-            </Button>
+            <h1 className="text-3xl font-bold">{user.fullName}</h1>
+
+            <EditProfile />
+
           </div>
-          <div className="flex items-center gap-6 mt-3 text-muted-foreground">
+          <div className="flex flex-col gap-2 mt-3 text-muted-foreground">
+
             <div className="flex items-center gap-1">
-              <MapPin className="w-5 h-5" />
-              <span>{user.location}</span>
+              <AtSign className="w-4 h-4" />
+              <p className="mb-1 text-lg">{user.username}</p>
             </div>
+
+            <ProfileLocation />
+
             <div className="flex items-center gap-1">
-              <Calendar className="w-5 h-5" />
-              <span>Member since {user.memberSince}</span>
+              <Calendar className="w-4 h-4" />
+              <span>Member since {moment(user.createdAt).format('LL')}</span>
+            </div>
+
+            <div className="mt-3">
+              {user.bio ? (
+                <span> {user.bio}</span>
+              )
+                : (
+                  <span className="text-muted-foreground">No bio available</span>
+                )}
+
             </div>
           </div>
-          <p className="mt-4 text-muted-foreground max-w-xl">{user.bio}</p>
-          <div className="flex items-center gap-6 mt-4 text-muted-foreground">
-            <a
-              href={`https://${user.website}`}
-              target="_blank"
-              rel="noreferrer"
-              className="hover:underline"
-            >
-              🌐 {user.website}
-            </a>
-            <a
-              href={`https://instagram.com/${user.instagram.replace("@", "")}`}
-              target="_blank"
-              rel="noreferrer"
-              className="hover:underline"
-            >
-              📸 {user.instagram}
-            </a>
-            <a
-              href={`https://twitter.com/${user.twitter.replace("@", "")}`}
-              target="_blank"
-              rel="noreferrer"
-              className="hover:underline"
-            >
-              🐦 {user.twitter}
-            </a>
+
+
+          <div className="flex flex-col gap-2 mt-4 text-muted-foreground">
+            <span className="text-sm">Social Links:</span>
+
+            <ProfileSocials />
           </div>
 
           {/* Stats */}
-          <div className="mt-6 flex flex-wrap gap-10 text-center text-foreground">
+
+          {/* <div className="mt-6 flex flex-wrap gap-10 text-center text-foreground">
             {Object.entries(user.stats).map(([key, value]) => (
               <div key={key}>
                 <div className="text-2xl font-bold">{value}</div>
                 <div className="capitalize">{key}</div>
               </div>
             ))}
-          </div>
+          </div> */}
+
         </div>
       </Card>
 
       {/* Tabs */}
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="mt-10">
-        <TabsList>
+
+      <Tabs defaultValue="recent" className="mt-10">
+        <TabsList className="border">
           <TabsTrigger value="recent">Recent Activity</TabsTrigger>
           <TabsTrigger value="achievements">Achievements</TabsTrigger>
           <TabsTrigger value="settings">Settings</TabsTrigger>
@@ -151,7 +136,7 @@ const ProfilePage = () => {
             Your latest travel updates and milestones
           </p>
           <div className="space-y-4">
-            {user.recentActivity.map((activity) => (
+            {/* {user.recentActivity.map((activity) => (
               <Card
                 key={activity.id}
                 className="flex items-center space-x-4 p-4"
@@ -175,7 +160,7 @@ const ProfilePage = () => {
                   </span>
                 </div>
               </Card>
-            ))}
+            ))} */}
           </div>
         </TabsContent>
 

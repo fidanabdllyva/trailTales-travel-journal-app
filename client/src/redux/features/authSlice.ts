@@ -59,7 +59,7 @@ const authSlice = createSlice({
             state,
             action: PayloadAction<{
                 id: string;
-                profileImage?: string;
+                profileImage: string;
                 email: string;
                 fullName: string;
                 username:string
@@ -80,7 +80,7 @@ const authSlice = createSlice({
             state.id = id;
             state.email = email;
             state.fullName = fullName;
-            state.profileImage = profileImage || null;
+            state.profileImage = profileImage;
             state.username = username;
             state.token = token;
             state.isAuthenticated = true;
