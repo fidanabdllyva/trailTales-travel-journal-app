@@ -34,6 +34,7 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import EditProfile from "@/components/client/EditProfile";
 import ProfileAvatar from "@/components/client/ProfileImage";
+import ChangePassword from "@/components/client/ChangePassword";
 
 
 const ProfilePage = () => {
@@ -50,20 +51,7 @@ const ProfilePage = () => {
       <Card className="flex flex-col md:flex-row items-center  space-y-6 md:space-y-0 md:space-x-10 p-6">
         {/* Avatar */}
         <div className="relative">
-          {/* <Avatar className="w-28 h-28">
-            <AvatarImage src={user.profileImage} alt={user.fullName} />
-            <AvatarFallback>{user.fullName.split(" ").map(n => n[0]).join("")}</AvatarFallback>
-          </Avatar>
-          <Button
-            size="icon"
-            variant="secondary"
-            className="absolute bottom-0 right-0 rounded-full p-2 bg-black  hover:bg-opacity-90"
-            aria-label="Upload photo"
-          >
-            <Camera className="w-5 h-5 text-white" />
-          </Button> */}
-
-          <ProfileAvatar user={user} />
+          <ProfileAvatar />
         </div>
 
 
@@ -71,10 +59,14 @@ const ProfilePage = () => {
         <div className="flex-1 w-full">
           <div className="flex justify-between items-start">
             <h1 className="text-3xl font-bold">{user.fullName}</h1>
-
-            <EditProfile />
-
+            <div className="flex flex-col gap-4">
+              <EditProfile />
+              {user.authProvider==="google" ? '' : (<ChangePassword/>)
+              }
+      
+            </div>
           </div>
+          
           <div className="flex flex-col gap-2 mt-3 text-muted-foreground">
 
             <div className="flex items-center gap-1">
@@ -112,13 +104,15 @@ const ProfilePage = () => {
           {/* <div className="mt-6 flex flex-wrap gap-10 text-center text-foreground">
             {Object.entries(user.stats).map(([key, value]) => (
               <div key={key}>
-                <div className="text-2xl font-bold">{value}</div>
-                <div className="capitalize">{key}</div>
+              <div className="text-2xl font-bold">{value}</div>
+              <div className="capitalize">{key}</div>
               </div>
-            ))}
-          </div> */}
+              ))}
+              </div> */}
 
         </div>
+
+
       </Card>
 
       {/* Tabs */}

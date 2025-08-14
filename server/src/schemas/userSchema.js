@@ -46,6 +46,17 @@ const userSchema = new mongoose.Schema(
             type: Date,
             default: null,
         },
+        bio: { type: String, default: '' },
+        socialLinks: {
+            instagram: { type: String, default: '' },
+            x: { type: String, default: '' },
+            linkedin: { type: String, default: '' },
+        },
+        location: {
+            country: { type: String , default: '' },
+            city: { type: String , default: '' },
+        },
+
     },
     { timestamps: true }
 );

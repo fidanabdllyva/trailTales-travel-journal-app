@@ -10,6 +10,7 @@ const {
   sendForgotPasswordEmail,
 } = require("../utils/mailService");
 const { CLIENT_URL } = require("../config/config");
+const cloudinary = require("cloudinary").v2;
 
 const MAX_ATTEMPTS = 3;
 const LOCK_TIME = 10 * 60 * 1000;
@@ -176,7 +177,7 @@ const login = async (credentials) => {
     fullName: user.fullName,
     username: user.username,
     profileImage: user.profileImage,
-  });
+  }, "1d");
   const refreshToken = generateRefreshToken({
     email: user.email,
     id: user._id,
@@ -218,6 +219,109 @@ const resetPassword = async (newPassword, email) => {
   return user
 }
 
+const updateUser = async (userId, updateData) => {
+  try {
+    const user = await UserModel.findById(userId);
+    if (!user) {
+      throw new Error("User not found");
+    }
+
+    // Fields that are allowed to be updated
+    const allowedUpdates = [
+      "fullName",
+      "username",
+      "bio",
+      "location",
+      "profileImage",
+      "socialLinks",
+      "password",
+      "public_id"
+    ];
+
+    // Filter only allowed fields
+    const filteredUpdates = Object.keys(updateData)
+      .filter((key) => allowedUpdates.includes(key))
+      .reduce((obj, key) => {
+        obj[key] = updateData[key];
+        return obj;
+      }, {});
+
+       if (filteredUpdates.username && filteredUpdates.username !== user.username) {
+      const existingUser = await UserModel.findOne({ username: filteredUpdates.username });
+      if (existingUser) {
+        throw new Error("Username already taken");
+      }
+      user.username = filteredUpdates.username;
+      delete filteredUpdates.username;
+    }
+
+    // Handle password hashing
+    if (filteredUpdates.password) {
+      const hashedPassword = await bcrypt.hash(filteredUpdates.password, 10);
+      user.password = hashedPassword;
+      delete filteredUpdates.password;
+    }
+
+    // Handle profile image change with Cloudinary
+    if (filteredUpdates.profileImage && filteredUpdates.public_id) {
+      if (user.public_id) {
+        await cloudinary.uploader.destroy(user.public_id);
+      }
+      user.profileImage = filteredUpdates.profileImage;
+      user.public_id = filteredUpdates.public_id;
+      delete filteredUpdates.profileImage;
+      delete filteredUpdates.public_id;
+    }
+
+    // Handle nested location update (merge instead of overwrite)
+    if (filteredUpdates.location) {
+      user.location = {
+        ...user.location,
+        ...filteredUpdates.location
+      };
+      delete filteredUpdates.location;
+    }
+
+    // Handle nested socialLinks update (merge instead of overwrite)
+    if (filteredUpdates.socialLinks) {
+      user.socialLinks = {
+        ...user.socialLinks,
+        ...filteredUpdates.socialLinks
+      };
+      delete filteredUpdates.socialLinks;
+    }
+
+    // Assign remaining simple fields
+    Object.assign(user, filteredUpdates);
+
+    await user.save();
+    return user;
+  } catch (error) {
+    throw new Error(error?.message || "Error updating user");
+  }
+};
+
+const changePassword = async (userId, currentPassword, newPassword) => {
+  const user = await UserModel.findById(userId);
+  if (!user) {
+    throw new Error("User not found");
+  }
+
+  // Verify current password
+  const isMatch = await bcrypt.compare(currentPassword, user.password);
+  if (!isMatch) {
+    throw new Error("Current password is incorrect");
+  }
+
+  // Hash and set new password
+  const hashedPassword = await bcrypt.hash(newPassword, 10);
+  user.password = hashedPassword;
+
+  await user.save();
+  return user;
+};
+
+
 module.exports = {
   getAll,
   getOne,
@@ -227,4 +331,6 @@ module.exports = {
   forgotPassword,
   resetPassword,
   unlockAcc,
+  updateUser,
+  changePassword,
 }

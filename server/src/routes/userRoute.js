@@ -10,6 +10,8 @@ const {
   forgotPassword,
   resetPassword,
   getCurrentUser,
+  updateUser,
+  changePassword
 } = require("../controllers/userController");
 const uploadMiddleware = require("../middlewares/uploadMiddleware");
 const authToken = require("../middlewares/authToken");
@@ -28,5 +30,8 @@ router.post("/reset-password", resetPassword);
 router.post("/refresh", refresh);
 router.post("/logout", logout);
 router.get("/me", authToken, getCurrentUser);
+router.patch("/change-password", authToken, changePassword);
+
+router.patch("/:id", authToken, upload.single("profileImage"), updateUser);
 
 module.exports = router;

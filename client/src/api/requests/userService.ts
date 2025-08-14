@@ -34,31 +34,27 @@ export const getUserById = async (userId: string): Promise<AxiosResponse<UserRes
   }
 };
 
-// export const updateProfile = async (data: Partial<User>): Promise<AxiosResponse<UserResponse>> => {
-//   try {
-//     const response = await instance.put<UserResponse>(`${endpoints.auth}/me`, data);
-//     return response;
-//   } catch (error: any) {
-//     throw new Error(error.response?.data?.message || error.message || 'Failed to update profile');
-//   }
-// };
+export const updateUser = async (userId: string, formData: FormData): Promise<AxiosResponse<UserResponse>> => {
+  try {
+    const response = await instance.patch<UserResponse>(
+      `${endpoints.auth}/${userId}`,
+      formData,
+      {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      }
+    );
+    return response;
+  } catch (error: any) {
+    throw new Error(error.response?.data?.message || error.message || 'Failed to update profile');
+  }
+};
 
-// export const updateProfileImage = async (formData: FormData): Promise<AxiosResponse<UserResponse>> => {
-//   try {
-//     const response = await instance.put<UserResponse>(
-//       `${endpoints.auth}/me/profile-image`,
-//       formData,
-//       {
-//         headers: {
-//           'Content-Type': 'multipart/form-data',
-//         },
-//       }
-//     );
-//     return response;
-//   } catch (error: any) {
-//     throw new Error(error.response?.data?.message || error.message || 'Failed to update profile image');
-//   }
-// };
+export const changePasswordApi = (data: { currentPassword: string; newPassword: string }) => {
+  return instance.patch(`${endpoints.auth}/change-password`, data);
+};
+
 
 // export const deleteAccount = async (): Promise<AxiosResponse<{ message: string }>> => {
 //   try {
