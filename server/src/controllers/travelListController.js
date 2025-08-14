@@ -1,315 +1,308 @@
-const { getAll, getById } = require("../services/travelList");
-const formatMongoData = require("../utils/formatMongoData");
+const travelListService = require('../services/travelListService');
+const formatMongoData = require('../utils/formatMongoData');
 
-exports.getAllTravelLists = async (_, res, next) => {
-  try {
-    const travelLists = await getAll();
-    res.status(200).json({
-      message: "Travel lists retrieved successfully!",
-      data: formatMongoData(travelLists),
-    });
-  } catch (error) {
-    next(error);
-  }
-}
+module.exports = {
+    // Create a new travel list
+    async createList(req, res, next) {
+        try {
+            const userId = req.user.id;
+            const { title, description, tags, isPublic } = req.body;
+            const file = req.file; // multer file
 
-exports.getTravelListById = async (req, res, next) => {
-  try {
-    const { id } = req.params;
-    const travelList = await getById(id);
-    if (!travelList) {
-      res.status(404).json({
-        message: "No such travel list found!",
-        data: null,
-      });
-    } else {
-      res.status(200).json({
-        message: "Travel list retrieved successfully!",
-        data: formatMongoData(travelList),
-      });
-    }
-  } catch (error) {
-    next(error);
-  }
-}
+            const listData = { title, description, tags, isPublic };
 
-exports.getAllLists = async (req, res, next) => {
-    try {
-        const userId = req.user._id; // User object from auth middleware
-        const lists = await getAll(userId);
+            const response = await travelListService.createTravelList(listData, file, userId);
 
-        res.status(200).json({
-            message: "Travel lists retrieved successfully!",
-            data: formatMongoData(lists),
-        });
-    } catch (error) {
-        next(error);
-    }
-};
+            if (!response.success) {
+                return res.status(400).json({
+                    message: response.message,
+                    data: null,
+                });
+            }
 
-exports.getListById = async (req, res, next) => {
-    try {
-        const { id } = req.params;
-        const userId = req.user._id;
-        
-        const list = await getOne(id, userId);
-        
-        if (!list) {
-            res.status(404).json({
-                message: "Travel list not found!",
-                data: null,
+            res.status(201).json({
+                message: response.message,
+                data: formatMongoData(response.data),
             });
-        } else {
+        } catch (error) {
+            next(error);
+        }
+    },
+
+    // Get all public travel lists
+    async getPublicLists(req, res, next) {
+        try {
+            const { page, limit, tag } = req.query;
+            const result = await travelListService.getPublicTravelLists(page, limit, tag);
+
+            res.json({
+                message: 'Public travel lists retrieved successfully!',
+                data: {
+                    lists: formatMongoData(result.lists),
+                    totalPages: result.totalPages,
+                    currentPage: result.currentPage,
+                    total: result.total
+                }
+            });
+        } catch (error) {
+            next(error);
+        }
+    },
+
+    // Get all lists for the logged-in user
+    async getAllLists(req, res, next) {
+        try {
+            const userId = req.user.id;
+            const lists = await travelListService.getAllLists(userId);
+
+            res.status(200).json({
+                message: "Travel lists retrieved successfully!",
+                data: formatMongoData(lists),
+            });
+        } catch (error) {
+            next(error);
+        }
+    },
+
+    // Get a single list by ID
+    async getListById(req, res, next) {
+        try {
+            const { id } = req.params;
+            const userId = req.user.id;
+
+            const list = await travelListService.getTravelList(id, userId);
+
+            if (!list) {
+                return res.status(404).json({
+                    message: "Travel list not found!",
+                    data: null,
+                });
+            }
+
             res.status(200).json({
                 message: "Travel list retrieved successfully!",
                 data: formatMongoData(list),
             });
-        }
-    } catch (error) {
-        if (error.message === "Travel list not found" || error.message === "You don't have access to this travel list") {
-            res.status(404).json({
-                message: error.message,
-                data: null,
-            });
-        } else {
+        } catch (error) {
+            if (error.message === "Travel list not found" || error.message === "You don't have access to this travel list") {
+                return res.status(404).json({
+                    message: error.message,
+                    data: null,
+                });
+            }
             next(error);
         }
-    }
-};
+    },
 
-exports.getUserOwnLists = async (req, res, next) => {
-    try {
-        const userId = req.user.id;
-        const lists = await getUserLists(userId);
+    // Get user's own lists
+    async getUserOwnLists(req, res, next) {
+        try {
+            const userId = req.user.id;
+            const lists = await travelListService.getUserOwnLists(userId);
 
-        res.status(200).json({
-            message: "User's travel lists retrieved successfully!",
-            data: formatMongoData(lists),
-        });
-    } catch (error) {
-        next(error);
-    }
-};
+            res.status(200).json({
+                message: "User's travel lists retrieved successfully!",
+                data: formatMongoData(lists),
+            });
+        } catch (error) {
+            next(error);
+        }
+    },
 
-exports.getUserCollaborativeLists = async (req, res, next) => {
-    try {
-        const userId = req.user.id;
-        const lists = await getCollaborativeLists(userId);
+    // Get lists the user collaborates on
+    async getUserCollaborativeLists(req, res, next) {
+        try {
+            const userId = req.user.id;
+            const lists = await travelListService.getUserCollaborativeLists(userId);
 
-        res.status(200).json({
-            message: "Collaborative travel lists retrieved successfully!",
-            data: formatMongoData(lists),
-        });
-    } catch (error) {
-        next(error);
-    }
-};
+            res.status(200).json({
+                message: "Collaborative travel lists retrieved successfully!",
+                data: formatMongoData(lists),
+            });
+        } catch (error) {
+            next(error);
+        }
+    },
 
-exports.createList = async (req, res, next) => {
-    try {
-        const userId = req.user.id;
-        const { title, description, tags, isPublic, coverImage } = req.body;
+    // Update a travel list
+    async updateList(req, res, next) {
+        try {
+            const { id } = req.params;
+            const userId = req.user.id;
+            const { title, description, tags, isPublic, coverImage } = req.body;
 
-        const listData = {
-            title,
-            description,
-            tags,
-            isPublic,
-            coverImage,
-        };
+            const updateData = { title, description, tags, isPublic, coverImage };
 
-        const response = await create(listData, userId);
+            const response = await travelListService.updateTravelList(id, updateData, userId);
 
-        if (!response.success) {
-            return res.status(400).json({
+            if (!response.success) {
+                const statusCode = response.message === "Travel list not found" ? 404 : 403;
+                return res.status(statusCode).json({
+                    message: response.message,
+                    data: null,
+                });
+            }
+
+            res.status(200).json({
+                message: response.message,
+                data: formatMongoData(response.data),
+            });
+        } catch (error) {
+            next(error);
+        }
+    },
+
+    // Delete a travel list
+    async deleteList(req, res, next) {
+        try {
+            const { id } = req.params;
+            const userId = req.user.id;
+
+            const response = await travelListService.deleteTravelList(id, userId);
+
+            if (!response.success) {
+                const statusCode = response.message === "Travel list not found" ? 404 : 403;
+                return res.status(statusCode).json({
+                    message: response.message,
+                    data: null,
+                });
+            }
+
+            res.status(200).json({
                 message: response.message,
                 data: null,
             });
+        } catch (error) {
+            next(error);
         }
+    },
 
-        res.status(201).json({
-            message: response.message,
-            data: formatMongoData(response.data),
-        });
-    } catch (error) {
-        next(error);
-    }
-};
+    // Add collaborator to list
+    async addCollaboratorToList(req, res, next) {
+        try {
+            const { id } = req.params;
+            const { collaboratorEmail } = req.body;
+            const userId = req.user.id;
 
-exports.updateList = async (req, res, next) => {
-    try {
-        const { id } = req.params;
-        const userId = req.user.id;
-        const { title, description, tags, isPublic, coverImage } = req.body;
+            if (!collaboratorEmail) {
+                return res.status(400).json({
+                    message: "Collaborator email is required",
+                    data: null,
+                });
+            }
 
-        const updateData = {
-            title,
-            description,
-            tags,
-            isPublic,
-            coverImage,
-        };
+            const response = await travelListService.addCollaborator(id, collaboratorEmail, userId);
 
-        const response = await update(id, updateData, userId);
+            if (!response.success) {
+                const statusCode =
+                    response.message === "Travel list not found" ||
+                        response.message === "User with this email not found" ? 404 :
+                        response.message === "Only the owner can add collaborators" ? 403 : 400;
 
-        if (!response.success) {
-            const statusCode = response.message === "Travel list not found" ? 404 : 403;
-            return res.status(statusCode).json({
+                return res.status(statusCode).json({
+                    message: response.message,
+                    data: null,
+                });
+            }
+
+            res.status(200).json({
                 message: response.message,
-                data: null,
+                data: formatMongoData(response.data),
             });
+        } catch (error) {
+            next(error);
         }
+    },
 
-        res.status(200).json({
-            message: response.message,
-            data: formatMongoData(response.data),
-        });
-    } catch (error) {
-        next(error);
-    }
-};
+    // Remove collaborator
+    async removeCollaboratorFromList(req, res, next) {
+        try {
+            const { id, collaboratorId } = req.params;
+            const userId = req.user.id;
 
-exports.deleteList = async (req, res, next) => {
-    try {
-        const { id } = req.params;
-        const userId = req.user.id;
+            const response = await travelListService.removeCollaborator(id, collaboratorId, userId);
 
-        const response = await deleteList(id, userId);
+            if (!response.success) {
+                const statusCode =
+                    response.message === "Travel list not found" ? 404 :
+                        response.message === "Only the owner can remove collaborators" ? 403 : 400;
 
-        if (!response.success) {
-            const statusCode = response.message === "Travel list not found" ? 404 : 403;
-            return res.status(statusCode).json({
+                return res.status(statusCode).json({
+                    message: response.message,
+                    data: null,
+                });
+            }
+
+            res.status(200).json({
                 message: response.message,
-                data: null,
+                data: formatMongoData(response.data),
             });
+        } catch (error) {
+            next(error);
         }
+    },
 
-        res.status(200).json({
-            message: response.message,
-            data: null,
-        });
-    } catch (error) {
-        next(error);
-    }
-};
+    // Add destination
+    async addDestinationToList(req, res, next) {
+        try {
+            const { id } = req.params;
+            const { destinationId } = req.body;
+            const userId = req.user.id;
 
-exports.addCollaboratorToList = async (req, res, next) => {
-    try {
-        const { id } = req.params;
-        const { collaboratorEmail } = req.body;
-        const userId = req.user.id;
+            if (!destinationId) {
+                return res.status(400).json({
+                    message: "Destination ID is required",
+                    data: null,
+                });
+            }
 
-        if (!collaboratorEmail) {
-            return res.status(400).json({
-                message: "Collaborator email is required",
-                data: null,
-            });
-        }
+            const response = await travelListService.addDestination(id, destinationId, userId);
 
-        const response = await addCollaborator(id, collaboratorEmail, userId);
+            if (!response.success) {
+                const statusCode =
+                    response.message === "Travel list not found" ? 404 :
+                        response.message === "You don't have permission to add destinations to this list" ? 403 : 400;
 
-        if (!response.success) {
-            const statusCode = response.message === "Travel list not found" || 
-                              response.message === "User with this email not found" ? 404 : 
-                              response.message === "Only the owner can add collaborators" ? 403 : 400;
-            
-            return res.status(statusCode).json({
+                return res.status(statusCode).json({
+                    message: response.message,
+                    data: null,
+                });
+            }
+
+            res.status(200).json({
                 message: response.message,
-                data: null,
+                data: formatMongoData(response.data),
             });
+        } catch (error) {
+            next(error);
         }
+    },
 
-        res.status(200).json({
-            message: response.message,
-            data: formatMongoData(response.data),
-        });
-    } catch (error) {
-        next(error);
-    }
-};
+    // Remove destination
+    async removeDestinationFromList(req, res, next) {
+        try {
+            const { id, destinationId } = req.params;
+            const userId = req.user.id;
 
-exports.removeCollaboratorFromList = async (req, res, next) => {
-    try {
-        const { id, collaboratorId } = req.params;
-        const userId = req.user.id;
+            const response = await travelListService.removeDestination(id, destinationId, userId);
 
-        const response = await removeCollaborator(id, collaboratorId, userId);
+            if (!response.success) {
+                const statusCode =
+                    response.message === "Travel list not found" ? 404 :
+                        response.message === "You don't have permission to remove destinations from this list" ? 403 : 400;
 
-        if (!response.success) {
-            const statusCode = response.message === "Travel list not found" ? 404 :
-                              response.message === "Only the owner can remove collaborators" ? 403 : 400;
-            
-            return res.status(statusCode).json({
+                return res.status(statusCode).json({
+                    message: response.message,
+                    data: null,
+                });
+            }
+
+            res.status(200).json({
                 message: response.message,
-                data: null,
+                data: formatMongoData(response.data),
             });
+        } catch (error) {
+            next(error);
         }
-
-        res.status(200).json({
-            message: response.message,
-            data: formatMongoData(response.data),
-        });
-    } catch (error) {
-        next(error);
-    }
-};
-
-exports.addDestinationToList = async (req, res, next) => {
-    try {
-        const { id } = req.params;
-        const { destinationId } = req.body;
-        const userId = req.user.id;
-
-        if (!destinationId) {
-            return res.status(400).json({
-                message: "Destination ID is required",
-                data: null,
-            });
-        }
-
-        const response = await addDestination(id, destinationId, userId);
-
-        if (!response.success) {
-            const statusCode = response.message === "Travel list not found" ? 404 :
-                              response.message === "You don't have permission to add destinations to this list" ? 403 : 400;
-            
-            return res.status(statusCode).json({
-                message: response.message,
-                data: null,
-            });
-        }
-
-        res.status(200).json({
-            message: response.message,
-            data: formatMongoData(response.data),
-        });
-    } catch (error) {
-        next(error);
-    }
-};
-
-exports.removeDestinationFromList = async (req, res, next) => {
-    try {
-        const { id, destinationId } = req.params;
-        const userId = req.user.id;
-
-        const response = await removeDestination(id, destinationId, userId);
-
-        if (!response.success) {
-            const statusCode = response.message === "Travel list not found" ? 404 :
-                              response.message === "You don't have permission to remove destinations from this list" ? 403 : 400;
-            
-            return res.status(statusCode).json({
-                message: response.message,
-                data: null,
-            });
-        }
-
-        res.status(200).json({
-            message: response.message,
-            data: formatMongoData(response.data),
-        });
-    } catch (error) {
-        next(error);
     }
 };
