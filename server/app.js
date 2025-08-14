@@ -9,6 +9,9 @@ const travelListRouter = require("./src/routes/travelListRoute");
 const passport = require("passport");
 require("./src/config/passport");
 const googleAuthRoute = require("./src/routes/googleAuthRoute");
+const destinationRouter=require("./src/routes/destinationRoute")
+const journalEntryRouter = require("./src/routes/journalEntryRoute")
+
 
 const app = express();
 
@@ -32,7 +35,9 @@ app.use(helmet());
 
 // Your routes here
 app.use("/auth", userRouter);
-app.use("/lists", travelListRouter);
+app.use("/list", travelListRouter);
+app.use("/destination", destinationRouter)
+app.use("/journal", journalEntryRouter)
 
 app.use(passport.initialize());
 app.use("/auth", googleAuthRoute); 
