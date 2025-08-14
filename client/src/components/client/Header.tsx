@@ -129,7 +129,7 @@ console.log(userData , "userData in header");
         <DropdownMenu>
           <DropdownMenuTrigger className="flex items-center space-x-2 focus:outline-none">
             {userData?.profileImage ? (
-              <img src={userData.profileImage} alt={userData.fullName ?? "User"} className="w-8 h-8 rounded-full" />
+              <img src={userData.profileImage} alt={userData.fullName ?? "User"} className="w-8 h-8 object-cover rounded-full" />
             ) : (
               <div className="w-8 h-8 rounded-full bg-gray-300 flex items-center justify-center">
                 <UserIcon className="w-5 h-5 text-gray-500" />

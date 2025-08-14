@@ -1,10 +1,56 @@
 
-const { CLIENT_URL, NODE_ENV } = require("../config/config");
+const { CLIENT_URL, NODE_ENV, JWT_REFRESH_SECRET_KEY, DEFAULT_AVATAR_URL } = require("../config/config");
 const bcrypt = require("bcrypt");
 const formatMongoData = require("../utils/formatMongoData");
 const { sendVerificationEmail } = require("../utils/mailService");
 const { generateAccessToken } = require("../utils/jwt");
-const { getAll, getOne, register, verifyEmail, forgotPassword, resetPassword, unlockAcc, login } = require("../services/userService");
+const { getAll, getOne, register, verifyEmail, forgotPassword, resetPassword,changePassword: changePasswordService, unlockAcc, login, updateUser: updateUserService } = require("../services/userService");
+
+exports.updateUser = async (req, res, next) => {
+  try {
+    const userId = req.params.id;
+
+    // Only allow users to update their own profile
+    if (userId !== req.user.id) {
+      return res.status(403).json({ message: "You can only update your own profile" });
+    }
+
+    const updateData = { ...req.body };
+
+    // Handle resetting to default photo
+    if (req.body.resetToDefault === "true") {
+      updateData.profileImage = DEFAULT_AVATAR_URL;
+      updateData.public_id = null;
+    }
+    // Handle uploaded file
+    else if (req.file && req.file.path) {
+      updateData.profileImage = req.file.path;
+      updateData.public_id = req.file.filename;
+    }
+
+    const updatedUser = await updateUserService(userId, updateData);
+
+    res.status(200).json({
+      message: "User updated successfully",
+      data: formatMongoData(updatedUser),
+    });
+  } catch (error) {
+    console.error(error); // log for debugging
+
+    // Handle known errors
+    if (error.message === "Username already taken") {
+      return res.status(400).json({ message: error.message });
+    }
+
+    if (error.message === "User not found") {
+      return res.status(404).json({ message: error.message });
+    }
+
+    // Fallback for unexpected errors
+    next(error)
+  }
+};
+
 
 exports.getAllUsers = async (_, res, next) => {
   try {
@@ -159,12 +205,12 @@ exports.login = async (req, res, next) => {
     console.log("RESPONSE ON SERVER: ", response);
 
     // Set refresh token cookie (HttpOnly)
-     res.cookie("refreshToken", response.refreshToken, {
+    res.cookie("refreshToken", response.refreshToken, {
       httpOnly: true,
-      secure: NODE_ENV === "production", // false in dev, true in prod
-      sameSite: NODE_ENV === "production" ? "none" : "lax", // none for cross-site
+      secure: NODE_ENV === "production",
+      sameSite: NODE_ENV === "production" ? "none" : "lax",
       maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
-      path: "/", // send cookie to all paths
+      path: "/",
     });
 
     return res.status(200).json({
@@ -189,10 +235,13 @@ exports.refresh = (req, res) => {
     if (err) {
       return res.status(403).json({ message: "invalid or expired token!" });
     }
+
     const user = await getOne(decoded.id);
     if (!user) {
       return res.status(403).json({ message: "invalid or expired token!" });
     }
+
+    // Generate new tokens
     const accessToken = generateAccessToken({
       id: user._id,
       email: user.email,
@@ -200,9 +249,22 @@ exports.refresh = (req, res) => {
       username: user.username,
       profileImage: user.profileImage,
     });
+
+    const newRefreshToken = generateRefreshToken({ id: user._id });
+
+    // Send new refresh token cookie
+    res.cookie("refreshToken", newRefreshToken, {
+      httpOnly: true,
+      secure: NODE_ENV === "production",
+      sameSite: NODE_ENV === "production" ? "none" : "lax",
+      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+      path: "/",
+    });
+
     return res.json({ accessToken });
   });
 };
+
 
 exports.logout = (_, res) => {
   res.clearCookie("refreshToken", {
@@ -231,6 +293,25 @@ exports.getCurrentUser = async (req, res, next) => {
       data: formatMongoData(user),
     });
   } catch (error) {
+    next(error);
+  }
+};
+
+exports.changePassword = async (req, res, next) => {
+  try {
+    const userId = req.user.id; 
+    const { currentPassword, newPassword } = req.body;
+
+    const updatedUser = await changePasswordService(userId, currentPassword, newPassword);
+
+    res.status(200).json({
+      message: "Password updated successfully",
+      data: formatMongoData(updatedUser),
+    });
+  } catch (error) {
+    if (error.message === "Current password is incorrect") {
+      return res.status(400).json({ message: error.message });
+    }
     next(error);
   }
 };

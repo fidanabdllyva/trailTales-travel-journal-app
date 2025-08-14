@@ -32,7 +32,7 @@ router.get("/google/callback", (req, res, next) => {
       fullName: user.fullName,
       username: user.username,
       passportImage: user.profileImage,
-    });
+    },"1d");
 
     const refreshToken = jwt.generateRefreshToken({
       id: user._id,
