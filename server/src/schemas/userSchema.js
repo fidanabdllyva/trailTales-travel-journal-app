@@ -53,9 +53,17 @@ const userSchema = new mongoose.Schema(
             linkedin: { type: String, default: '' },
         },
         location: {
-            country: { type: String , default: '' },
-            city: { type: String , default: '' },
+            country: { type: String, default: '' },
+            city: { type: String, default: '' },
         },
+        collaboratorRequests: [
+            {
+                travelList: { type: mongoose.Schema.Types.ObjectId, ref: 'TravelList' },
+                fromUser: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+                createdAt: { type: Date, default: Date.now },
+                status: { type: String, enum: ['pending', 'accepted', 'rejected'], default: 'pending' }
+            }
+        ],
 
     },
     { timestamps: true }

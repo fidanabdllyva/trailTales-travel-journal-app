@@ -1,4 +1,5 @@
 const UserModel = require('../models/userModel');
+const TravelListModel = require("../models/travelListModel");
 const bcrypt = require('bcrypt');
 const {
   verifyAccessToken,
@@ -323,6 +324,48 @@ const changePassword = async (userId, currentPassword, newPassword) => {
   return user;
 };
 
+const respondToCollaboratorRequest = async (userId, requestId, accept) => {
+  const user = await UserModel.findById(userId);
+  if (!user) throw new Error("User not found");
+
+  const request = user.collaboratorRequests.id(requestId);
+  if (!request || request.status !== "pending") {
+    return { success: false, message: "Request not found" };
+  }
+
+  if (accept) {
+    const list = await TravelListModel.findById(request.travelList);
+    if (!list) throw new Error("Travel list not found");
+
+    // Add user to collaborators
+    list.collaborators.push(userId);
+    await list.save();
+
+    request.status = "accepted";
+  } else {
+    request.status = "rejected";
+  }
+
+  await user.save();
+  return { success: true, message: `Request ${accept ? "accepted" : "rejected"}` };
+};
+
+const getCollaboratorRequests = async (userId) => {
+  const user = await UserModel.findById(userId)
+    .populate({
+      path: "collaboratorRequests.travelList",
+      select: "title owner",
+      populate: { path: "owner", select: "username fullName profileImage" }
+    });
+
+  if (!user) throw new Error("User not found");
+
+  // Filter only pending requests
+  const pendingRequests = user.collaboratorRequests.filter(req => req.status === "pending");
+
+  return pendingRequests;
+};
+
 
 module.exports = {
   getAll,
@@ -335,4 +378,6 @@ module.exports = {
   unlockAcc,
   updateUser,
   changePassword,
+  respondToCollaboratorRequest,
+  getCollaboratorRequests
 }
