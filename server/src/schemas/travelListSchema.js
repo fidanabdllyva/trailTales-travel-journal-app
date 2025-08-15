@@ -25,6 +25,10 @@ const travelListSchema = new mongoose.Schema(
             type: String,
             required: true,
         },
+        public_id:{
+            type:String
+            
+        },
         destinations: [
             {
                 type: mongoose.Schema.Types.ObjectId,

@@ -8,31 +8,46 @@ const createTravelList = async (listData, file, userId) => {
     const { title, description, tags, isPublic } = listData;
 
     let coverImage = '';
-    if (file) {
-        const result = await cloudinary.uploader.upload(file.path || file, {
-            folder: 'travel_lists',
-            resource_type: 'auto'
+    let public_id = '';
+
+    try {
+        if (file) {
+            const result = await cloudinary.uploader.upload(file.path || file, {
+                folder: 'travel_lists',
+                resource_type: 'auto'
+            });
+            coverImage = result.secure_url;
+            public_id = result.public_id;
+        }
+
+        const travelList = new TravelListModel({
+            title,
+            description,
+            tags: tags ? tags.split(',').map(tag => tag.trim()) : [],
+            isPublic: isPublic !== undefined ? isPublic : true,
+            owner: userId,
+            coverImage,
+            public_id
         });
-        coverImage = result.secure_url;
+
+        await travelList.save();
+
+        // Push list to user's lists only after successful save
+        await UserModel.findByIdAndUpdate(userId, { $push: { lists: travelList._id } });
+
+        const populatedList = await TravelListModel.findById(travelList._id)
+            .populate('owner', 'username profileImage')
+            .populate('collaborators', 'username profileImage')
+            .populate('destinations');
+
+        return { success: true, message: "Travel list created successfully", data: populatedList };
+    } catch (err) {
+        // If Cloudinary uploaded a file but save failed, destroy the uploaded image
+        if (public_id) {
+            await cloudinary.uploader.destroy(public_id);
+        }
+        throw new Error(err.message);
     }
-
-    const travelList = new TravelListModel({
-        title,
-        description,
-        tags: tags ? tags.split(',').map(tag => tag.trim()) : [],
-        isPublic: isPublic !== undefined ? isPublic : true,
-        owner: userId,
-        coverImage
-    });
-
-    await travelList.save();
-
-    const populatedList = await TravelListModel.findById(travelList._id)
-        .populate('owner', 'username avatar')
-        .populate('collaborators', 'username avatar')
-        .populate('destinations');
-
-    return { success: true, message: "Travel list created successfully", data: populatedList };
 };
 
 // Get public lists
@@ -42,9 +57,9 @@ const getPublicTravelLists = async (page = 1, limit = 10, tag) => {
     if (tag) query.tags = tag;
 
     const lists = await TravelListModel.find(query)
-        .populate('owner', 'username avatar')
-        .populate('collaborators', 'username avatar')
-        .populate('destinations')
+        .populate('owner', 'username fullName profileImage')
+        .populate('collaborators', 'username fullName profileImage')
+        .populate('destinations','-listId')
         .sort({ createdAt: -1 })
         .skip(skip)
         .limit(parseInt(limit));
@@ -59,10 +74,10 @@ const getAllLists = async (userId) => {
     const lists = await TravelListModel.find({
         $or: [{ owner: userId }, { collaborators: userId }]
     })
-    .populate('owner', 'username avatar')
-    .populate('collaborators', 'username avatar')
-    .populate('destinations')
-    .sort({ createdAt: -1 });
+        .populate('owner', 'username fullName profileImage')
+        .populate('collaborators', 'username fullName profileImage')
+        .populate('destinations')
+        .sort({ createdAt: -1 });
 
     return lists;
 };
@@ -70,8 +85,8 @@ const getAllLists = async (userId) => {
 // Get user own lists
 const getUserOwnLists = async (userId) => {
     return await TravelListModel.find({ owner: userId })
-        .populate('owner', 'username avatar')
-        .populate('collaborators', 'username avatar')
+        .populate('owner', 'username fullName profileImage')
+        .populate('collaborators', 'username fullName profileImage')
         .populate('destinations')
         .sort({ createdAt: -1 });
 };
@@ -79,8 +94,8 @@ const getUserOwnLists = async (userId) => {
 // Get collaborative lists
 const getUserCollaborativeLists = async (userId) => {
     return await TravelListModel.find({ collaborators: userId })
-        .populate('owner', 'username avatar')
-        .populate('collaborators', 'username avatar')
+        .populate('owner', 'username fullName profileImage')
+        .populate('collaborators', 'username fullName profileImage')
         .populate('destinations')
         .sort({ createdAt: -1 });
 };
@@ -88,8 +103,8 @@ const getUserCollaborativeLists = async (userId) => {
 // Get single list
 const getTravelList = async (id, userId) => {
     const list = await TravelListModel.findById(id)
-        .populate('owner', 'username avatar')
-        .populate('collaborators', 'username avatar')
+        .populate('owner', 'username fullName profileImage')
+        .populate('collaborators', 'username fullName profileImage')
         .populate('destinations');
 
     if (!list) throw new Error('Travel list not found');
@@ -112,8 +127,7 @@ const updateTravelList = async (id, updateData, userId, file) => {
 
     if (file) {
         if (list.coverImage) {
-            const publicId = list.coverImage.split('/').slice(-1)[0].split('.')[0];
-            await cloudinary.uploader.destroy(`travel_lists/${publicId}`);
+            await cloudinary.uploader.destroy(list.public_id);
         }
         const result = await cloudinary.uploader.upload(file.path || file, {
             folder: 'travel_lists',
@@ -131,8 +145,8 @@ const updateTravelList = async (id, updateData, userId, file) => {
     await list.save();
 
     const populatedList = await TravelListModel.findById(list._id)
-        .populate('owner', 'username avatar')
-        .populate('collaborators', 'username avatar')
+        .populate('owner', 'username fullName profileImage')
+        .populate('collaborators', 'username fullName profileImage')
         .populate('destinations');
 
     return { success: true, message: "Travel list updated successfully", data: populatedList };
@@ -143,18 +157,23 @@ const deleteTravelList = async (id, userId) => {
     const list = await TravelListModel.findById(id);
     if (!list) return { success: false, message: "Travel list not found" };
 
-    if (list.owner.toString() !== userId) return { success: false, message: "Only the owner can delete this list" };
+    if (list.owner.toString() !== userId) 
+        return { success: false, message: "Only the owner can delete this list" };
 
-    if (list.coverImage) {
-        const publicId = list.coverImage.split('/').slice(-1)[0].split('.')[0];
-        await cloudinary.uploader.destroy(`travel_lists/${publicId}`);
+    // Delete cover image from Cloudinary
+    if (list.coverImage && list.public_id) {
+        await cloudinary.uploader.destroy(list.public_id);
     }
 
+    // Delete all destinations in this list
     await DestinationModel.deleteMany({ listId: list._id });
-    await list.remove();
+
+    // Delete the travel list itself
+    await TravelListModel.findByIdAndDelete(list._id);
 
     return { success: true, message: "Travel list deleted successfully" };
 };
+
 
 // Add collaborator by email
 const addCollaborator = async (listId, collaboratorEmail, userId) => {
@@ -173,8 +192,8 @@ const addCollaborator = async (listId, collaboratorEmail, userId) => {
     await list.save();
 
     const populatedList = await TravelListModel.findById(list._id)
-        .populate('owner', 'username avatar')
-        .populate('collaborators', 'username avatar')
+        .populate('owner', 'username fullName profileImage')
+        .populate('collaborators', 'username fullName profileImage')
         .populate('destinations');
 
     return { success: true, message: "Collaborator added successfully", data: populatedList };
@@ -190,8 +209,8 @@ const removeCollaborator = async (listId, collaboratorId, userId) => {
     await list.save();
 
     const populatedList = await TravelListModel.findById(list._id)
-        .populate('owner', 'username avatar')
-        .populate('collaborators', 'username avatar')
+        .populate('owner', 'username fullName profileImage')
+        .populate('collaborators', 'username fullName profileImage')
         .populate('destinations');
 
     return { success: true, message: "Collaborator removed successfully", data: populatedList };

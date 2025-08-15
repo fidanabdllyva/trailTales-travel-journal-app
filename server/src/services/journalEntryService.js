@@ -1,18 +1,19 @@
 const JournalEntry = require('../models/journalEntryModel');
+const Comment = require('../models/commentModel');
 const cloudinary = require("cloudinary").v2;
 
 const createJournalEntry = async (entryData, files, userId) => {
-    const { title, content, destination, public } = entryData;
+    const { title, content, destination, public: isPublic } = entryData;
     let photos = [];
 
-    // Handle multiple photo uploads
+    // Upload photos
     if (files && files.length > 0) {
         const uploadPromises = files.map(async (file) => {
-            const result = await cloudinary.uploader.upload(file.path, {
+            const result = await cloudinary.uploader.upload(file.path || file, {
                 folder: 'journal_entries',
                 resource_type: 'auto'
             });
-            return result.secure_url;
+            return { url: result.secure_url, public_id: result.public_id };
         });
         photos = await Promise.all(uploadPromises);
     }
@@ -23,40 +24,43 @@ const createJournalEntry = async (entryData, files, userId) => {
         photos,
         destination,
         author: userId,
-        public: public || false
+        public: isPublic || false
     });
 
     await journalEntry.save();
-    
-    return await JournalEntry.findById(journalEntry._id)
-        .populate('author', 'username avatar')
-        .populate('destination', 'name location')
+
+    // Populate references
+    const populatedEntry = await JournalEntry.findById(journalEntry._id)
+        .populate('author', 'username fullName profileImage')
+        .populate('destination', 'name country')
         .populate({
             path: 'comments',
             populate: {
                 path: 'author',
-                select: 'username avatar'
+                select: 'username fullName profileImage'
             }
         });
+
+    return populatedEntry;
 };
 
 const getJournalEntries = async (params = {}) => {
-    const { destination, author, public, page = 1, limit = 10 } = params;
+    const { destination, author, public: isPublic, page = 1, limit = 10 } = params;
     const skip = (page - 1) * limit;
-    
+
     const query = {};
     if (destination) query.destination = destination;
     if (author) query.author = author;
-    if (public !== undefined) query.public = public;
+    if (isPublic !== undefined) query.public = isPublic;
 
     const entries = await JournalEntry.find(query)
-        .populate('author', 'username avatar')
-        .populate('destination', 'name location')
+        .populate('author', 'username fullName profileImage')
+        .populate('destination', 'name country')
         .populate({
             path: 'comments',
             populate: {
                 path: 'author',
-                select: 'username avatar'
+                select: 'username fullName profileImage'
             }
         })
         .sort({ createdAt: -1 })
@@ -75,49 +79,41 @@ const getJournalEntries = async (params = {}) => {
 
 const getJournalEntryById = async (id, userId) => {
     const entry = await JournalEntry.findById(id)
-        .populate('author', 'username avatar')
-        .populate('destination', 'name location')
+        .populate('author', 'username fullName profileImage')
+        .populate('destination', 'name country')
         .populate({
             path: 'comments',
             populate: {
                 path: 'author',
-                select: 'username avatar'
+                select: 'username fullName profileImage'
             }
         });
 
-    if (!entry) {
-        throw new Error('Journal entry not found');
-    }
+    if (!entry) throw new Error('Journal entry not found');
 
-    // Check if the entry is private and the user is not the author
-    if (!entry.public && (!userId || entry.author._id.toString() !== userId)) {
-        throw new Error('Access denied to private journal entry');
+    // Access check for private entries
+    if (!entry.public && (!userId || entry.author._id.toString() !== userId.toString())) {
+        throw new Error('Access denied');
     }
 
     return entry;
 };
 
 const updateJournalEntry = async (id, updateData, files, userId) => {
-    const { title, content, public } = updateData;
+    const { title, content, public: isPublic } = updateData;
     const entry = await JournalEntry.findById(id);
 
-    if (!entry) {
-        throw new Error('Journal entry not found');
-    }
+    if (!entry) throw new Error('Journal entry not found');
+    if (entry.author.toString() !== userId.toString()) throw new Error('Not authorized');
 
-    // Check if the user is the author
-    if (entry.author.toString() !== userId) {
-        throw new Error('Not authorized to update this entry');
-    }
-
-    // Handle new photo uploads
+    // Handle new photos
     if (files && files.length > 0) {
         const uploadPromises = files.map(async (file) => {
-            const result = await cloudinary.uploader.upload(file.path, {
+            const result = await cloudinary.uploader.upload(file.path || file, {
                 folder: 'journal_entries',
                 resource_type: 'auto'
             });
-            return result.secure_url;
+            return { url: result.secure_url, public_id: result.public_id };
         });
         const newPhotos = await Promise.all(uploadPromises);
         entry.photos = [...entry.photos, ...newPhotos];
@@ -126,65 +122,39 @@ const updateJournalEntry = async (id, updateData, files, userId) => {
     // Update fields
     entry.title = title || entry.title;
     entry.content = content || entry.content;
-    if (public !== undefined) entry.public = public;
+    if (isPublic !== undefined) entry.public = isPublic;
 
     await entry.save();
 
-    return await JournalEntry.findById(entry._id)
-        .populate('author', 'username avatar')
-        .populate('destination', 'name location')
-        .populate({
-            path: 'comments',
-            populate: {
-                path: 'author',
-                select: 'username avatar'
-            }
-        });
+    return await getJournalEntryById(entry._id, userId);
 };
 
 const deleteJournalEntry = async (id, userId) => {
     const entry = await JournalEntry.findById(id);
 
-    if (!entry) {
-        throw new Error('Journal entry not found');
-    }
-
-    // Check if the user is the author
-    if (entry.author.toString() !== userId) {
-        throw new Error('Not authorized to delete this entry');
-    }
+    if (!entry) throw new Error('Journal entry not found');
+    if (entry.author.toString() !== userId.toString()) throw new Error('Not authorized');
 
     // Delete photos from Cloudinary
     if (entry.photos.length > 0) {
-        const deletePromises = entry.photos.map(async (photoUrl) => {
-            const publicId = photoUrl.split('/').slice(-1)[0].split('.')[0];
-            return cloudinary.uploader.destroy(`journal_entries/${publicId}`);
-        });
+        const deletePromises = entry.photos.map(photo => cloudinary.uploader.destroy(photo.public_id));
         await Promise.all(deletePromises);
     }
 
-    await entry.remove();
+    await entry.deleteOne();
     return { message: 'Journal entry deleted successfully' };
 };
 
 const removePhoto = async (id, photoUrl, userId) => {
     const entry = await JournalEntry.findById(id);
+    if (!entry) throw new Error('Journal entry not found');
+    if (entry.author.toString() !== userId.toString()) throw new Error('Not authorized');
 
-    if (!entry) {
-        throw new Error('Journal entry not found');
-    }
+    const photoToRemove = entry.photos.find(p => p.url === photoUrl);
+    if (!photoToRemove) throw new Error('Photo not found');
 
-    // Check if the user is the author
-    if (entry.author.toString() !== userId) {
-        throw new Error('Not authorized to modify this entry');
-    }
-
-    // Remove photo from Cloudinary
-    const publicId = photoUrl.split('/').slice(-1)[0].split('.')[0];
-    await cloudinary.uploader.destroy(`journal_entries/${publicId}`);
-
-    // Remove photo URL from entry
-    entry.photos = entry.photos.filter(url => url !== photoUrl);
+    await cloudinary.uploader.destroy(photoToRemove.public_id);
+    entry.photos = entry.photos.filter(p => p.url !== photoUrl);
     await entry.save();
 
     return entry;
@@ -192,21 +162,13 @@ const removePhoto = async (id, photoUrl, userId) => {
 
 const toggleLike = async (entryId, userId) => {
     const entry = await JournalEntry.findById(entryId);
+    if (!entry) throw new Error('Journal entry not found');
 
-    if (!entry) {
-        throw new Error('Journal entry not found');
-    }
-
-    const likeIndex = entry.likes.findIndex(
-        like => like.userId.toString() === userId
-    );
-
-    if (likeIndex === -1) {
-        // Add like
+    const index = entry.likes.findIndex(like => like.userId.toString() === userId.toString());
+    if (index === -1) {
         entry.likes.push({ userId });
     } else {
-        // Remove like
-        entry.likes.splice(likeIndex, 1);
+        entry.likes.splice(index, 1);
     }
 
     await entry.save();

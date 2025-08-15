@@ -2,53 +2,55 @@ const mongoose = require("mongoose");
 
 const journalEntrySchema = new mongoose.Schema({
 
-    title: { type: String, required: true, trim: true },
+  title: { type: String, required: true, trim: true },
 
-    content: { type: String, required: true, trim: true },
+  content: { type: String, required: true, trim: true },
 
-    photos: {
-
-        type: [String],
-
-        default: [],
-
-    },
+  photos: {
+    type: [
+      {
+        url: { type: String, required: true },
+        public_id: { type: String, required: true },
+      }
+    ],
+    default: []
+  },
   likes: {
-  type: [
-    {
-      userId: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
-      createdAt: { type: Date, default: Date.now },
-    }
-  ],
-  default: [],
-},
-    comments: {
-        type: [mongoose.Schema.Types.ObjectId],
-        ref: "Comment",
-        default: [],
-    },
+    type: [
+      {
+        userId: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
+        createdAt: { type: Date, default: Date.now },
+      }
+    ],
+    default: [],
+  },
+  comments: {
+    type: [mongoose.Schema.Types.ObjectId],
+    ref: "Comment",
+    default: [],
+  },
 
-    destination: {
+  destination: {
 
-        type: mongoose.Schema.Types.ObjectId,
+    type: mongoose.Schema.Types.ObjectId,
 
-        ref: "Destination",
+    ref: "Destination",
 
-        required: true,
+    required: true,
 
-    },
+  },
 
-    author: {
+  author: {
 
-        type: mongoose.Schema.Types.ObjectId,
+    type: mongoose.Schema.Types.ObjectId,
 
-        ref: "User",
+    ref: "User",
 
-        required: true,
+    required: true,
 
-    },
+  },
 
-    public: { type: Boolean, default: false },
+  public: { type: Boolean, default: false },
 
 }, { timestamps: true });
 
