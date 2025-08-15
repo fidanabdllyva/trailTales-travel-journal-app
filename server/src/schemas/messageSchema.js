@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const applyIdTransform = require("../utils/idTransform")
 
 const messageSchema = new mongoose.Schema({
   sender: {
@@ -16,5 +17,7 @@ const messageSchema = new mongoose.Schema({
     required: true,
   },
 },{ timestamps: true });
+
+applyIdTransform(messageSchema)
 
 module.exports = messageSchema;

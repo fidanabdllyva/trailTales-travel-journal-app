@@ -1,4 +1,5 @@
 const mongoose = require("mongoose");
+const applyIdTransform = require("../utils/idTransform")
 
 const commentSchema = new mongoose.Schema({
     content: { type: String, required: true, trim: true },
@@ -6,6 +7,6 @@ const commentSchema = new mongoose.Schema({
     journalEntry: { type: mongoose.Schema.Types.ObjectId, ref: "JournalEntry", required: true },
 }, { timestamps: true });
 
-
+applyIdTransform(commentSchema)
 
 module.exports = commentSchema;

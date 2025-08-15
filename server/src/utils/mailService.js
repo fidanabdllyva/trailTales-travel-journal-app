@@ -2,22 +2,22 @@ const nodemailer = require("nodemailer");
 require("dotenv").config();
 
 const transporter = nodemailer.createTransport({
-    service: "gmail",
-    port: 587,
-    secure: false,
-    auth: {
-        user: process.env.GMAIL_USER,
-        pass: process.env.GMAIL_PASSWORD,
-    },
+  service: "gmail",
+  port: 587,
+  secure: false,
+  auth: {
+    user: process.env.GMAIL_USER,
+    pass: process.env.GMAIL_PASSWORD,
+  },
 });
 
 const sendVerificationEmail = async (toEmail, userFullName, verificationLink) => {
-    try {
-        await transporter.sendMail({
-            from: `"TrailTales" <${process.env.GMAIL_USER}>`,
-            to: toEmail,
-            subject: "Confirm Your TrailTales Account",
-            html: `
+  try {
+    await transporter.sendMail({
+      from: `"TrailTales" <${process.env.GMAIL_USER}>`,
+      to: toEmail,
+      subject: "Confirm Your TrailTales Account",
+      html: `
       <div style="font-family: 'Segoe UI', sans-serif; background-color: #f0f2f5; padding: 40px;">
         <div style="max-width: 600px; margin: auto; background-color: #ffffff; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
           
@@ -48,37 +48,37 @@ const sendVerificationEmail = async (toEmail, userFullName, verificationLink) =>
         </div>
       </div>
       `,
-        });
-    } catch (error) {
-        console.error("Error sending email:", error);
-    }
+    });
+  } catch (error) {
+    console.error("Error sending email:", error);
+  }
 };
 
 
 const sendUnlockAccountEmail = async (
-    toEmail,
-    userFullName,
-    unlockAccountLink
+  toEmail,
+  userFullName,
+  unlockAccountLink
 ) => {
-    try {
-        const lockDate = new Date();
-        const unlockDate = new Date(lockDate.getTime() + 10 * 60 * 1000); // 10 minutes later
+  try {
+    const lockDate = new Date();
+    const unlockDate = new Date(lockDate.getTime() + 10 * 60 * 1000); // 10 minutes later
 
-        const formatDateTime = (date) =>
-            date.toLocaleString("en-US", {
-                weekday: "short",
-                year: "numeric",
-                month: "short",
-                day: "numeric",
-                hour: "2-digit",
-                minute: "2-digit",
-            });
+    const formatDateTime = (date) =>
+      date.toLocaleString("en-US", {
+        weekday: "short",
+        year: "numeric",
+        month: "short",
+        day: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
+      });
 
-        await transporter.sendMail({
-            from: `"TrailTales" <${process.env.GMAIL_USER}>`,
-            to: toEmail,
-            subject: "Account Locked - Unlock Your TrailTales Account",
-            html: `
+    await transporter.sendMail({
+      from: `"TrailTales" <${process.env.GMAIL_USER}>`,
+      to: toEmail,
+      subject: "Account Locked - Unlock Your TrailTales Account",
+      html: `
   <div style="font-family: 'Segoe UI', sans-serif; background-color: #f0f2f5; padding: 40px;">
     <div style="max-width: 600px; margin: auto; background-color: #ffffff; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
       
@@ -120,11 +120,11 @@ const sendUnlockAccountEmail = async (
     </div>
   </div>
   `,
-        });
+    });
 
-    } catch (error) {
-        console.error("Error sending unlock email:", error);
-    }
+  } catch (error) {
+    console.error("Error sending unlock email:", error);
+  }
 };
 
 const sendForgotPasswordEmail = async (toEmail, resetPasswordLink) => {
@@ -186,7 +186,7 @@ const sendCollaboratorInviteEmail = async (toEmail, toFullName, fromFullName, li
       <div style="font-family: 'Segoe UI', sans-serif; padding: 40px;">
         <h2>Hello ${toFullName},</h2>
         <p>${fromFullName} invited you to be a collaborator on their travel list <strong>"${listTitle}"</strong>.</p>
-        <p>Click below to view and accept the invitation:</p>
+        <p>Visit your profile page's "Requests" section to view this invitation and choose to accept or decline it.</p>
         <a href="${inviteLink}" style="background-color: #06beb6; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px;">View Invitation</a>
         <p>If you don’t want to collaborate, you can ignore this email.</p>
       </div>
@@ -218,9 +218,9 @@ const sendCollaboratorRemovedEmail = async (toEmail, toFullName, listTitle, remo
 
 
 module.exports = {
-    sendVerificationEmail,
-    sendUnlockAccountEmail,
-    sendForgotPasswordEmail,
-    sendCollaboratorInviteEmail,
-    sendCollaboratorRemovedEmail
+  sendVerificationEmail,
+  sendUnlockAccountEmail,
+  sendForgotPasswordEmail,
+  sendCollaboratorInviteEmail,
+  sendCollaboratorRemovedEmail
 };

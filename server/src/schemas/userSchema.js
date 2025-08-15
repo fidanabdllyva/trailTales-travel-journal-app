@@ -1,4 +1,6 @@
 const mongoose = require("mongoose");
+const applyIdTransform = require("../utils/idTransform");
+const collaboratorRequestSchema = require("./collaboratorSubSchema");
 const userSchema = new mongoose.Schema(
     {
         username: { type: String, required: true, unique: true, trim: true },
@@ -56,16 +58,12 @@ const userSchema = new mongoose.Schema(
             country: { type: String, default: '' },
             city: { type: String, default: '' },
         },
-        collaboratorRequests: [
-            {
-                travelList: { type: mongoose.Schema.Types.ObjectId, ref: 'TravelList' },
-                fromUser: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
-                createdAt: { type: Date, default: Date.now },
-                status: { type: String, enum: ['pending', 'accepted', 'rejected'], default: 'pending' }
-            }
-        ],
+         collaboratorRequests: [collaboratorRequestSchema],
 
     },
     { timestamps: true }
 );
+
+applyIdTransform(userSchema);
+
 module.exports = userSchema;
