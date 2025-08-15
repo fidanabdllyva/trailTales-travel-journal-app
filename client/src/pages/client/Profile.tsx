@@ -59,7 +59,7 @@ const ProfilePage = () => {
         <div className="flex-1 w-full">
           <div className="flex justify-between items-start">
             <h1 className="text-3xl font-bold">{user.fullName}</h1>
-            <div className="flex flex-col gap-4">
+            <div className="flex items-center gap-4">
               <EditProfile />
               {user.authProvider==="google" ? '' : (<ChangePassword/>)
               }
