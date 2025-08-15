@@ -3,31 +3,28 @@ const formatMongoData = require('../utils/formatMongoData');
 
 module.exports = {
     // Create a new travel list
-    async createList(req, res, next) {
-        try {
-            const userId = req.user.id;
-            const { title, description, tags, isPublic } = req.body;
-            const file = req.file; // multer file
+  async createList(req, res, next) {
+    try {
+        const userId = req.user.id;
+        const { title, description, tags, isPublic } = req.body;
+        const file = req.file;
 
-            const listData = { title, description, tags, isPublic };
+        // Prepare data for service
+        const listData = { title, description, tags, isPublic };
 
-            const response = await travelListService.createTravelList(listData, file, userId);
+        // Call service
+        const list = await travelListService.createTravelList(listData, file, userId);
 
-            if (!response.success) {
-                return res.status(400).json({
-                    message: response.message,
-                    data: null,
-                });
-            }
-
-            res.status(201).json({
-                message: response.message,
-                data: formatMongoData(response.data),
-            });
-        } catch (error) {
-            next(error);
-        }
-    },
+        // Respond
+        res.status(201).json({
+            success: true,
+            message: "Travel list created successfully",
+            data: formatMongoData(list),
+        });
+    } catch (error) {
+        next(error);
+    }
+},
 
     // Get all public travel lists
     async getPublicLists(req, res, next) {

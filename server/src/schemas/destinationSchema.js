@@ -8,25 +8,28 @@ const destinationSchema = new mongoose.Schema(
         dateVisited: { type: Date, default: null },
         status: {
             type: String,
-             enum: ['wishlist', 'planned', 'completed', 'cancelled'],
-             default: 'wishlist',
-             required: true
+            enum: ['wishlist', 'planned', 'completed', 'cancelled'],
+            default: 'wishlist',
+            required: true
         },
         notes: { type: String, trim: true, default: '' },
-        images:
-            [
+        images: {
+            type: [
                 {
                     url: { type: String, required: true },
                     public_id: { type: String, required: true },
-                },
+                }
             ],
-            listId:{
-                type: mongoose.Schema.Types.ObjectId,
-                ref: 'TravelList',
-                required: true,
-            },
+            default: [],
+        },
+
+        listId: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: 'TravelList',
+            required: true,
+        },
     }
-, { timestamps: true }
+    , { timestamps: true }
 )
 
 module.exports = destinationSchema;

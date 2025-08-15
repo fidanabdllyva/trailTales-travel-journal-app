@@ -16,7 +16,9 @@ const MAX_ATTEMPTS = 3;
 const LOCK_TIME = 10 * 60 * 1000;
 
 
-const getAll = async () => await UserModel.find().select("-password");
+const getAll = async () => await UserModel.find()
+.populate('lists')
+.select("-password");
 
 const getOne = async (id) => await UserModel.findById(id).select("-password");
 
