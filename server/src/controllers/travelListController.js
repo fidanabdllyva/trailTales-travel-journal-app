@@ -3,28 +3,28 @@ const formatMongoData = require('../utils/formatMongoData');
 
 module.exports = {
     // Create a new travel list
-  async createList(req, res, next) {
-    try {
-        const userId = req.user.id;
-        const { title, description, tags, isPublic } = req.body;
-        const file = req.file;
+    async createList(req, res, next) {
+        try {
+            const userId = req.user.id;
+            const { title, description, tags, isPublic } = req.body;
+            const file = req.file;
 
-        // Prepare data for service
-        const listData = { title, description, tags, isPublic };
+            // Prepare data for service
+            const listData = { title, description, tags, isPublic };
 
-        // Call service
-        const list = await travelListService.createTravelList(listData, file, userId);
+            // Call service
+            const list = await travelListService.createTravelList(listData, file, userId);
 
-        // Respond
-        res.status(201).json({
-            success: true,
-            message: "Travel list created successfully",
-            data: formatMongoData(list),
-        });
-    } catch (error) {
-        next(error);
-    }
-},
+            // Respond
+            res.status(201).json({
+                success: true,
+                message: "Travel list created successfully",
+                data: formatMongoData(list),
+            });
+        } catch (error) {
+            next(error);
+        }
+    },
 
     // Get all public travel lists
     async getPublicLists(req, res, next) {
@@ -109,7 +109,7 @@ module.exports = {
     // Get lists the user collaborates on
     async getUserCollaborativeLists(req, res, next) {
         try {
-            const userId = req.user.id;
+            const userId = req.user._id;
             const lists = await travelListService.getUserCollaborativeLists(userId);
 
             res.status(200).json({
@@ -174,27 +174,28 @@ module.exports = {
         }
     },
 
-    // Add collaborator to list
+    // Add collaborator (send invitation email)
     async addCollaboratorToList(req, res, next) {
         try {
-            const { id } = req.params;
-            const { collaboratorEmail } = req.body;
+            const { id } = req.params; 
+            const { email } = req.body;
             const userId = req.user.id;
 
-            if (!collaboratorEmail) {
+            if (!email) {
                 return res.status(400).json({
                     message: "Collaborator email is required",
                     data: null,
                 });
             }
 
-            const response = await travelListService.addCollaborator(id, collaboratorEmail, userId);
+            const response = await travelListService.addCollaborator(id, email, userId);
 
             if (!response.success) {
                 const statusCode =
                     response.message === "Travel list not found" ||
                         response.message === "User with this email not found" ? 404 :
-                        response.message === "Only the owner can add collaborators" ? 403 : 400;
+                        response.message === "Only the owner can add collaborators" ? 403 :
+                            response.message === "User already has a pending invitation" ? 400 : 400;
 
                 return res.status(statusCode).json({
                     message: response.message,
@@ -202,9 +203,10 @@ module.exports = {
                 });
             }
 
+            // Invitation sent successfully
             res.status(200).json({
                 message: response.message,
-                data: formatMongoData(response.data),
+                data: null, 
             });
         } catch (error) {
             next(error);
@@ -214,7 +216,7 @@ module.exports = {
     // Remove collaborator
     async removeCollaboratorFromList(req, res, next) {
         try {
-            const { id, collaboratorId } = req.params;
+            const { id, collaboratorId } = req.params; // list id and collaborator id
             const userId = req.user.id;
 
             const response = await travelListService.removeCollaborator(id, collaboratorId, userId);
@@ -238,6 +240,7 @@ module.exports = {
             next(error);
         }
     },
+
 
     // Add destination
     async addDestinationToList(req, res, next) {

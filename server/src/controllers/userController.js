@@ -4,7 +4,7 @@ const bcrypt = require("bcrypt");
 const formatMongoData = require("../utils/formatMongoData");
 const { sendVerificationEmail } = require("../utils/mailService");
 const { generateAccessToken } = require("../utils/jwt");
-const { getAll, getOne, register, verifyEmail, forgotPassword, resetPassword,changePassword: changePasswordService, unlockAcc, login, updateUser: updateUserService } = require("../services/userService");
+const { getAll, getOne, register, verifyEmail, forgotPassword,getCollaboratorRequests: getCollaboratorRequestsService, respondToCollaboratorRequest: respondToCollaboratorRequestService , resetPassword,changePassword: changePasswordService, unlockAcc, login, updateUser: updateUserService } = require("../services/userService");
 
 exports.updateUser = async (req, res, next) => {
   try {
@@ -312,6 +312,39 @@ exports.changePassword = async (req, res, next) => {
     if (error.message === "Current password is incorrect") {
       return res.status(400).json({ message: error.message });
     }
+    next(error);
+  }
+};
+
+exports.respondToCollaboratorRequest = async (req, res, next) => {
+  try {
+    const userId = req.user.id;
+    const { requestId } = req.params;
+    const { accept } = req.body;
+
+    const response = await respondToCollaboratorRequestService(userId, requestId, accept);
+    if (!response.success) {
+      return res.status(404).json({ message: response.message });
+    }
+
+    res.status(200).json({
+      message: response.message,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+exports.getCollaboratorRequests = async (req, res, next) => {
+  try {
+    const userId = req.user.id;
+    const requests = await getCollaboratorRequestsService(userId);
+
+    res.status(200).json({
+      message: "collaborator requests fetched successfully",
+      data: requests,
+    });
+  } catch (error) {
     next(error);
   }
 };

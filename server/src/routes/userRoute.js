@@ -11,7 +11,9 @@ const {
   resetPassword,
   getCurrentUser,
   updateUser,
-  changePassword
+  changePassword,
+  respondToCollaboratorRequest,
+  getCollaboratorRequests
 } = require("../controllers/userController");
 const uploadMiddleware = require("../middlewares/uploadMiddleware");
 const authToken = require("../middlewares/authToken");
@@ -31,6 +33,9 @@ router.post("/refresh", refresh);
 router.post("/logout", logout);
 router.get("/me", authToken, getCurrentUser);
 router.patch("/change-password", authToken, changePassword);
+router.get("/collaborator-requests", authToken, getCollaboratorRequests);
+router.post("/collaborator-requests/:requestId/respond", authToken, respondToCollaboratorRequest);
+
 
 router.patch("/:id", authToken, upload.single("profileImage"), updateUser);
 

@@ -176,9 +176,51 @@ const sendForgotPasswordEmail = async (toEmail, resetPasswordLink) => {
   }
 };
 
+const sendCollaboratorInviteEmail = async (toEmail, toFullName, fromFullName, listTitle, inviteLink) => {
+  try {
+    await transporter.sendMail({
+      from: `"TrailTales" <${process.env.GMAIL_USER}>`,
+      to: toEmail,
+      subject: `${fromFullName} invited you to collaborate on "${listTitle}"`,
+      html: `
+      <div style="font-family: 'Segoe UI', sans-serif; padding: 40px;">
+        <h2>Hello ${toFullName},</h2>
+        <p>${fromFullName} invited you to be a collaborator on their travel list <strong>"${listTitle}"</strong>.</p>
+        <p>Click below to view and accept the invitation:</p>
+        <a href="${inviteLink}" style="background-color: #06beb6; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px;">View Invitation</a>
+        <p>If you don’t want to collaborate, you can ignore this email.</p>
+      </div>
+      `,
+    });
+  } catch (err) {
+    console.error("Error sending collaborator invite email:", err);
+  }
+};
+
+const sendCollaboratorRemovedEmail = async (toEmail, toFullName, listTitle, removedBy) => {
+  try {
+    await transporter.sendMail({
+      from: `"TrailTales" <${process.env.GMAIL_USER}>`,
+      to: toEmail,
+      subject: `Removed from "${listTitle}" Travel List`,
+      html: `
+      <div style="font-family: 'Segoe UI', sans-serif; padding: 40px;">
+        <h2>Hello ${toFullName},</h2>
+        <p>You have been removed as a collaborator from the travel list <strong>"${listTitle}"</strong> by ${removedBy}.</p>
+        <p>If you think this was a mistake, please contact the owner.</p>
+      </div>
+      `,
+    });
+  } catch (err) {
+    console.error("Error sending collaborator removed email:", err);
+  }
+};
+
 
 module.exports = {
     sendVerificationEmail,
     sendUnlockAccountEmail,
     sendForgotPasswordEmail,
+    sendCollaboratorInviteEmail,
+    sendCollaboratorRemovedEmail
 };

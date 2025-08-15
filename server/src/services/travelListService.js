@@ -2,6 +2,8 @@ const TravelListModel = require('../models/travelListModel');
 const DestinationModel = require('../models/destinationModel');
 const cloudinary = require("cloudinary").v2;
 const UserModel = require('../models/userModel'); // for collaborator email lookup
+const { sendCollaboratorRemovedEmail, sendCollaboratorInviteEmail } = require('../utils/mailService');
+const { CLIENT_URL } = require('../config/config');
 
 // Create travel list
 const createTravelList = async (listData, file, userId) => {
@@ -176,45 +178,74 @@ const deleteTravelList = async (id, userId) => {
 
 
 // Add collaborator by email
-const addCollaborator = async (listId, collaboratorEmail, userId) => {
-    const list = await TravelListModel.findById(listId);
-    if (!list) return { success: false, message: "Travel list not found" };
-    if (list.owner.toString() !== userId) return { success: false, message: "Only the owner can add collaborators" };
+const addCollaborator = async (listId, email, userId) => {
+  const list = await TravelListModel.findById(listId);
+  if (!list) return { success: false, message: "Travel list not found" };
+  if (list.owner.toString() !== userId) return { success: false, message: "Only the owner can add collaborators" };
 
-    const collaborator = await UserModel.findOne({ email: collaboratorEmail });
-    if (!collaborator) return { success: false, message: "User with this email not found" };
+  const collaborator = await UserModel.findOne({ email: email });
+  if (!collaborator) return { success: false, message: "User with this email not found" };
 
-    if (list.collaborators.includes(collaborator._id)) {
-        return { success: false, message: "User is already a collaborator" };
-    }
+  // Check if already a collaborator
+  if (list.collaborators.includes(collaborator._id)) {
+    return { success: false, message: "User is already a collaborator" };
+  }
 
-    list.collaborators.push(collaborator._id);
-    await list.save();
+  // Check if already invited
+  const alreadyInvited = collaborator.collaboratorRequests.some(
+    req => req.travelList.toString() === list._id.toString() && req.status === 'pending'
+  );
+  if (alreadyInvited) {
+    return { success: false, message: "User already has a pending invitation" };
+  }
 
-    const populatedList = await TravelListModel.findById(list._id)
-        .populate('owner', 'username fullName profileImage')
-        .populate('collaborators', 'username fullName profileImage')
-        .populate('destinations');
+  // Add a collaborator request
+  collaborator.collaboratorRequests.push({
+    travelList: list._id,
+    fromUser: userId,
+  });
+  await collaborator.save();
 
-    return { success: true, message: "Collaborator added successfully", data: populatedList };
+  // Send invitation email
+  const owner = await UserModel.findById(userId);
+  const inviteLink = `${CLIENT_URL}/travel-lists/${list._id}`;
+  await sendCollaboratorInviteEmail(collaborator.email, collaborator.fullName, owner.fullName, list.title, inviteLink);
+
+  return { success: true, message: "Invitation sent successfully" };
 };
 
 // Remove collaborator
 const removeCollaborator = async (listId, collaboratorId, userId) => {
-    const list = await TravelListModel.findById(listId);
-    if (!list) return { success: false, message: "Travel list not found" };
-    if (list.owner.toString() !== userId) return { success: false, message: "Only the owner can remove collaborators" };
+  const list = await TravelListModel.findById(listId);
+  if (!list) return { success: false, message: "Travel list not found" };
+  if (list.owner.toString() !== userId) return { success: false, message: "Only the owner can remove collaborators" };
 
-    list.collaborators = list.collaborators.filter(id => id.toString() !== collaboratorId);
-    await list.save();
+  // Remove collaborator
+  list.collaborators = list.collaborators.filter(id => id.toString() !== collaboratorId);
+  await list.save();
 
-    const populatedList = await TravelListModel.findById(list._id)
-        .populate('owner', 'username fullName profileImage')
-        .populate('collaborators', 'username fullName profileImage')
-        .populate('destinations');
+  // Remove pending requests if any
+  const collaborator = await UserModel.findById(collaboratorId);
+  if (collaborator) {
+    collaborator.collaboratorRequests = collaborator.collaboratorRequests.filter(
+      req => req.travelList.toString() !== listId.toString()
+    );
+    await collaborator.save();
 
-    return { success: true, message: "Collaborator removed successfully", data: populatedList };
+    // Send removal email
+    const owner = await UserModel.findById(userId);
+    await sendCollaboratorRemovedEmail(collaborator.email, collaborator.fullName, list.title, owner.fullName);
+  }
+
+  // Return populated list
+  const populatedList = await TravelListModel.findById(list._id)
+    .populate('owner', 'username fullName profileImage')
+    .populate('collaborators', 'username fullName profileImage')
+    .populate('destinations');
+
+  return { success: true, message: "Collaborator removed successfully", data: populatedList };
 };
+
 
 module.exports = {
     createTravelList,
