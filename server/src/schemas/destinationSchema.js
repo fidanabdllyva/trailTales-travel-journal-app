@@ -1,4 +1,6 @@
 const mongoose = require('mongoose');
+const applyIdTransform = require("../utils/idTransform");
+const imageSubSchema = require('./imageSubSchema');
 
 const destinationSchema = new mongoose.Schema(
     {
@@ -13,15 +15,7 @@ const destinationSchema = new mongoose.Schema(
             required: true
         },
         notes: { type: String, trim: true, default: '' },
-        images: {
-            type: [
-                {
-                    url: { type: String, required: true },
-                    public_id: { type: String, required: true },
-                }
-            ],
-            default: [],
-        },
+        images: [imageSubSchema],
 
         listId: {
             type: mongoose.Schema.Types.ObjectId,
@@ -31,5 +25,7 @@ const destinationSchema = new mongoose.Schema(
     }
     , { timestamps: true }
 )
+
+applyIdTransform(destinationSchema)
 
 module.exports = destinationSchema;

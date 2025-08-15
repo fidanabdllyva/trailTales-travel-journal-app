@@ -208,7 +208,7 @@ const addCollaborator = async (listId, email, userId) => {
 
   // Send invitation email
   const owner = await UserModel.findById(userId);
-  const inviteLink = `${CLIENT_URL}/travel-lists/${list._id}`;
+  const inviteLink = `${CLIENT_URL}/profile`;
   await sendCollaboratorInviteEmail(collaborator.email, collaborator.fullName, owner.fullName, list.title, inviteLink);
 
   return { success: true, message: "Invitation sent successfully" };

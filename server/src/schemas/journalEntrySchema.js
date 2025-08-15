@@ -1,4 +1,6 @@
 const mongoose = require("mongoose");
+const applyIdTransform = require("../utils/idTransform");
+const imageSubSchema = require("./imageSubSchema");
 
 const journalEntrySchema = new mongoose.Schema({
 
@@ -6,15 +8,7 @@ const journalEntrySchema = new mongoose.Schema({
 
   content: { type: String, required: true, trim: true },
 
-  photos: {
-    type: [
-      {
-        url: { type: String, required: true },
-        public_id: { type: String, required: true },
-      }
-    ],
-    default: []
-  },
+  photos: [imageSubSchema],
   likes: {
     type: [
       {
@@ -53,5 +47,7 @@ const journalEntrySchema = new mongoose.Schema({
   public: { type: Boolean, default: false },
 
 }, { timestamps: true });
+
+applyIdTransform(journalEntrySchema)
 
 module.exports = journalEntrySchema;
