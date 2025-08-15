@@ -1,3 +1,5 @@
+import type { TravelListType } from "./TravelListType";
+
 export interface User {
   id?: string;
   username: string;
@@ -6,7 +8,7 @@ export interface User {
   profileImage: string ;
   public_id: string;
   premium: boolean;
-  lists?: string[];
+  lists?: TravelListType[];
   isVerified: boolean;
   authProvider: 'google' | 'local';
   authId?: string | null;
