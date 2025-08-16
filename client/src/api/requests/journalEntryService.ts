@@ -61,7 +61,7 @@ export const updateJournalEntry = async (id: string, formData: FormData) => {
 export const deleteJournalEntry = async (id: string) => {
   try {
     const response = await instance.delete(`${endpoints.journal}/${id}`);
-    return response.data; // { success: boolean, message: string }
+    return response.data; 
   } catch (error) {
     console.error(`Failed to delete journal entry ${id}:`, error);
     throw error;

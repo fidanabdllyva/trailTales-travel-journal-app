@@ -1,18 +1,20 @@
 import type { TravelListType } from "./TravelListType";
 
 export interface DestinationType {
-    id: string; 
-    name: string;
-    country: string;
-    datePlanned: Date;
-    dateVisited: Date | null;
+    id: string;
+    location: {
+        country: string;
+        city: string;
+    };
+    datePlanned: Date | string;
+    dateVisited: Date | null | string;
     status: 'wishlist' | 'planned' | 'completed' | 'cancelled';
     notes: string;
-    images: {
+    image: {
         url: string;
         public_id: string;
-    }[];
-    list: TravelListType; 
+    };
+    list: TravelListType;
     createdAt: Date;
     updatedAt: Date;
 }

@@ -21,18 +21,6 @@ const formatDate = (date?: string | Date) => {
 };
 
 // Types
-type JournalDetail = {
-  id: string;
-  title: string;
-  destination: { id: string; name: string };
-  content: string;
-  createdAt: string;
-  public: boolean;
-  photos: { url: string }[];
-  likes?: number;
-  comments?: number;
-};
-
 type Member = {
   id: string;
   fullName: string;
@@ -115,8 +103,8 @@ export default function TravelListDetail() {
 
   // Public photos from journals
   const publicPhotos =
-    (list as any).journals?.filter((j: JournalDetail) => j.public && j.photos.length > 0)
-      .flatMap((j: JournalDetail) => j.photos) || [];
+    (list as any).journals?.filter((j: any) => j.public && j.photos.length > 0)
+      .flatMap((j:any ) => j.photos) || [];
 
   return (
     <div className="max-w-6xl mx-auto p-4">
@@ -130,7 +118,6 @@ export default function TravelListDetail() {
         </Link>
       </div>
 
-      {/* Hero */}
       {/* Hero */}
       <div className="relative mb-6 overflow-hidden rounded-xl border">
         {/* Background image */}
@@ -217,16 +204,17 @@ export default function TravelListDetail() {
         <TabsContent value="destinations" className="space-y-4">
           {list.destinations.map((d) => (
             <Card key={d.id} className="flex">
-              {d.images?.[0] && (
+             
                 <img
-                  src={d.images[0].url}
-                  alt={d.name}
+                  src={d.image.url}
+                  alt={d.location.country}
                   className="w-40 h-32 object-cover"
                 />
-              )}
+      
               <div className="p-4 flex-1">
-                <h3 className="text-xl font-semibold">{d.name}</h3>
-                <p className="text-gray-500">{d.country}</p>
+                <h3 className="text-xl font-semibold">{d.location.city}, {d.location.country} </h3>
+                <p className="text-gray-500">{d.location.city}</p>
+                <p>{d.status}</p>
                 <p className="text-gray-600 mt-2">{d.notes}</p>
                 <div className="mt-2 text-sm text-gray-500 flex gap-4">
                   {d.datePlanned && (
@@ -247,7 +235,7 @@ export default function TravelListDetail() {
 
         {/* Journals */}
         <TabsContent value="journals" className="space-y-4">
-          {(list as any).journals?.map((j: JournalDetail) => (
+          {(list as any).journals?.map((j:any) => (
             <Card key={j.id}>
               <div className="flex flex-col gap-4 p-4">
                 <div className="flex items-start justify-between gap-4">
