@@ -4,7 +4,7 @@ const applyIdTransform = require("../utils/idTransform");
 const imageSubSchema = new mongoose.Schema({
   url: { type: String, required: true },
   public_id: { type: String, required: true }
-}, { _id: true });
+}, { _id: false });
 
 applyIdTransform(imageSubSchema);
 

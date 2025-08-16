@@ -24,14 +24,9 @@ const journalEntrySchema = new mongoose.Schema({
     default: [],
   },
 
-  destination: {
-
-    type: mongoose.Schema.Types.ObjectId,
-
-    ref: "Destination",
-
-    required: true,
-
+  location: {
+    country: { type: String, required:true },
+    city: { type: String, required:true },
   },
 
   author: {
