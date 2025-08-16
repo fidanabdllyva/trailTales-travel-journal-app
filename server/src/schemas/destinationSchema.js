@@ -4,9 +4,11 @@ const imageSubSchema = require('./imageSubSchema');
 
 const destinationSchema = new mongoose.Schema(
     {
-        name: { type: String, required: true, trim: true },
-        country: { type: String, required: true, trim: true },
-        datePlanned: { type: Date, required: true },
+        location: {
+            country: { type: String, required:true  },
+            city: { type: String, required:true  },
+        },
+        datePlanned: { type: Date},
         dateVisited: { type: Date, default: null },
         status: {
             type: String,
@@ -15,7 +17,7 @@ const destinationSchema = new mongoose.Schema(
             required: true
         },
         notes: { type: String, trim: true, default: '' },
-        images: [imageSubSchema],
+        image: imageSubSchema,
 
         listId: {
             type: mongoose.Schema.Types.ObjectId,

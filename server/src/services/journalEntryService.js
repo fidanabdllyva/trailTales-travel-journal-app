@@ -3,7 +3,7 @@ const Comment = require('../models/commentModel');
 const cloudinary = require("cloudinary").v2;
 
 const createJournalEntry = async (entryData, files, userId) => {
-    const { title, content, destination, public: isPublic } = entryData;
+    const { title, content, country, city, public: isPublic } = entryData;
     let photos = [];
 
     // Upload photos
@@ -22,7 +22,7 @@ const createJournalEntry = async (entryData, files, userId) => {
         title,
         content,
         photos,
-        destination,
+        location: { country, city },
         author: userId,
         public: isPublic || false
     });
@@ -32,7 +32,6 @@ const createJournalEntry = async (entryData, files, userId) => {
     // Populate references
     const populatedEntry = await JournalEntry.findById(journalEntry._id)
         .populate('author', 'username fullName profileImage')
-        .populate('destination', 'name country')
         .populate({
             path: 'comments',
             populate: {
@@ -45,17 +44,17 @@ const createJournalEntry = async (entryData, files, userId) => {
 };
 
 const getJournalEntries = async (params = {}) => {
-    const { destination, author, public: isPublic, page = 1, limit = 10 } = params;
+    const { country, city, author, public: isPublic, page = 1, limit = 10 } = params;
     const skip = (page - 1) * limit;
 
     const query = {};
-    if (destination) query.destination = destination;
+    if (country) query['location.country'] = country;
+    if (city) query['location.city'] = city;
     if (author) query.author = author;
     if (isPublic !== undefined) query.public = isPublic;
 
     const entries = await JournalEntry.find(query)
         .populate('author', 'username fullName profileImage')
-        .populate('destination', 'name country')
         .populate({
             path: 'comments',
             populate: {
@@ -80,7 +79,6 @@ const getJournalEntries = async (params = {}) => {
 const getJournalEntryById = async (id, userId) => {
     const entry = await JournalEntry.findById(id)
         .populate('author', 'username fullName profileImage')
-        .populate('destination', 'name country')
         .populate({
             path: 'comments',
             populate: {
@@ -100,7 +98,7 @@ const getJournalEntryById = async (id, userId) => {
 };
 
 const updateJournalEntry = async (id, updateData, files, userId) => {
-    const { title, content, public: isPublic } = updateData;
+    const { title, content, country, city, public: isPublic } = updateData;
     const entry = await JournalEntry.findById(id);
 
     if (!entry) throw new Error('Journal entry not found');
@@ -122,6 +120,12 @@ const updateJournalEntry = async (id, updateData, files, userId) => {
     // Update fields
     entry.title = title || entry.title;
     entry.content = content || entry.content;
+    if (country || city) {
+        entry.location = {
+            country: country || entry.location.country,
+            city: city || entry.location.city
+        };
+    }
     if (isPublic !== undefined) entry.public = isPublic;
 
     await entry.save();

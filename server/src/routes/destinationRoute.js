@@ -9,7 +9,7 @@ router.use(authToken);
 
 // Create a new destination
 router.post('/', 
-    uploadMiddleware.array('images', 5), // Allow up to 5 images
+    uploadMiddleware.single('image'), 
     destinationController.createDestination
 );
 

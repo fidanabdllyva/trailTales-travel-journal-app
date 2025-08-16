@@ -25,7 +25,11 @@ const createTravelList = async (listData, file, userId) => {
         const travelList = new TravelListModel({
             title,
             description,
-            tags: tags ? tags.split(',').map(tag => tag.trim()) : [],
+            tags: Array.isArray(tags)
+                ? tags.map(tag => tag.trim())
+                : tags
+                    ? tags.split(',').map(tag => tag.trim())
+                    : [],
             isPublic: isPublic !== undefined ? isPublic : true,
             owner: userId,
             coverImage,
@@ -61,7 +65,7 @@ const getPublicTravelLists = async (page = 1, limit = 10, tag) => {
     const lists = await TravelListModel.find(query)
         .populate('owner', 'username fullName profileImage')
         .populate('collaborators', 'username fullName profileImage')
-        .populate('destinations','-listId')
+        .populate('destinations', '-listId')
         .sort({ createdAt: -1 })
         .skip(skip)
         .limit(parseInt(limit));
@@ -141,7 +145,12 @@ const updateTravelList = async (id, updateData, userId, file) => {
     const { title, description, tags, isPublic } = updateData;
     if (title) list.title = title;
     if (description) list.description = description;
-    if (tags) list.tags = tags.split(',').map(t => t.trim());
+    if (tags) {
+        list.tags = Array.isArray(tags)
+            ? tags.map(t => t.trim())
+            : tags.split(',').map(t => t.trim());
+    }
+
     if (isPublic !== undefined) list.isPublic = isPublic;
 
     await list.save();
@@ -159,7 +168,7 @@ const deleteTravelList = async (id, userId) => {
     const list = await TravelListModel.findById(id);
     if (!list) return { success: false, message: "Travel list not found" };
 
-    if (list.owner.toString() !== userId) 
+    if (list.owner.toString() !== userId)
         return { success: false, message: "Only the owner can delete this list" };
 
     // Delete cover image from Cloudinary
@@ -179,71 +188,71 @@ const deleteTravelList = async (id, userId) => {
 
 // Add collaborator by email
 const addCollaborator = async (listId, email, userId) => {
-  const list = await TravelListModel.findById(listId);
-  if (!list) return { success: false, message: "Travel list not found" };
-  if (list.owner.toString() !== userId) return { success: false, message: "Only the owner can add collaborators" };
+    const list = await TravelListModel.findById(listId);
+    if (!list) return { success: false, message: "Travel list not found" };
+    if (list.owner.toString() !== userId) return { success: false, message: "Only the owner can add collaborators" };
 
-  const collaborator = await UserModel.findOne({ email: email });
-  if (!collaborator) return { success: false, message: "User with this email not found" };
+    const collaborator = await UserModel.findOne({ email: email });
+    if (!collaborator) return { success: false, message: "User with this email not found" };
 
-  // Check if already a collaborator
-  if (list.collaborators.includes(collaborator._id)) {
-    return { success: false, message: "User is already a collaborator" };
-  }
+    // Check if already a collaborator
+    if (list.collaborators.includes(collaborator._id)) {
+        return { success: false, message: "User is already a collaborator" };
+    }
 
-  // Check if already invited
-  const alreadyInvited = collaborator.collaboratorRequests.some(
-    req => req.travelList.toString() === list._id.toString() && req.status === 'pending'
-  );
-  if (alreadyInvited) {
-    return { success: false, message: "User already has a pending invitation" };
-  }
+    // Check if already invited
+    const alreadyInvited = collaborator.collaboratorRequests.some(
+        req => req.travelList.toString() === list._id.toString() && req.status === 'pending'
+    );
+    if (alreadyInvited) {
+        return { success: false, message: "User already has a pending invitation" };
+    }
 
-  // Add a collaborator request
-  collaborator.collaboratorRequests.push({
-    travelList: list._id,
-    fromUser: userId,
-  });
-  await collaborator.save();
+    // Add a collaborator request
+    collaborator.collaboratorRequests.push({
+        travelList: list._id,
+        fromUser: userId,
+    });
+    await collaborator.save();
 
-  // Send invitation email
-  const owner = await UserModel.findById(userId);
-  const inviteLink = `${CLIENT_URL}/profile`;
-  await sendCollaboratorInviteEmail(collaborator.email, collaborator.fullName, owner.fullName, list.title, inviteLink);
+    // Send invitation email
+    const owner = await UserModel.findById(userId);
+    const inviteLink = `${CLIENT_URL}/profile`;
+    await sendCollaboratorInviteEmail(collaborator.email, collaborator.fullName, owner.fullName, list.title, inviteLink);
 
-  return { success: true, message: "Invitation sent successfully" };
+    return { success: true, message: "Invitation sent successfully" };
 };
 
 // Remove collaborator
 const removeCollaborator = async (listId, collaboratorId, userId) => {
-  const list = await TravelListModel.findById(listId);
-  if (!list) return { success: false, message: "Travel list not found" };
-  if (list.owner.toString() !== userId) return { success: false, message: "Only the owner can remove collaborators" };
+    const list = await TravelListModel.findById(listId);
+    if (!list) return { success: false, message: "Travel list not found" };
+    if (list.owner.toString() !== userId) return { success: false, message: "Only the owner can remove collaborators" };
 
-  // Remove collaborator
-  list.collaborators = list.collaborators.filter(id => id.toString() !== collaboratorId);
-  await list.save();
+    // Remove collaborator
+    list.collaborators = list.collaborators.filter(id => id.toString() !== collaboratorId);
+    await list.save();
 
-  // Remove pending requests if any
-  const collaborator = await UserModel.findById(collaboratorId);
-  if (collaborator) {
-    collaborator.collaboratorRequests = collaborator.collaboratorRequests.filter(
-      req => req.travelList.toString() !== listId.toString()
-    );
-    await collaborator.save();
+    // Remove pending requests if any
+    const collaborator = await UserModel.findById(collaboratorId);
+    if (collaborator) {
+        collaborator.collaboratorRequests = collaborator.collaboratorRequests.filter(
+            req => req.travelList.toString() !== listId.toString()
+        );
+        await collaborator.save();
 
-    // Send removal email
-    const owner = await UserModel.findById(userId);
-    await sendCollaboratorRemovedEmail(collaborator.email, collaborator.fullName, list.title, owner.fullName);
-  }
+        // Send removal email
+        const owner = await UserModel.findById(userId);
+        await sendCollaboratorRemovedEmail(collaborator.email, collaborator.fullName, list.title, owner.fullName);
+    }
 
-  // Return populated list
-  const populatedList = await TravelListModel.findById(list._id)
-    .populate('owner', 'username fullName profileImage')
-    .populate('collaborators', 'username fullName profileImage')
-    .populate('destinations');
+    // Return populated list
+    const populatedList = await TravelListModel.findById(list._id)
+        .populate('owner', 'username fullName profileImage')
+        .populate('collaborators', 'username fullName profileImage')
+        .populate('destinations');
 
-  return { success: true, message: "Collaborator removed successfully", data: populatedList };
+    return { success: true, message: "Collaborator removed successfully", data: populatedList };
 };
 
 
