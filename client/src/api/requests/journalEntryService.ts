@@ -3,49 +3,89 @@ import { endpoints } from "../constants";
 import type { JournalEntryType } from "@/types/JournalEntryType";
 
 export const createJournalEntry = async (formData: FormData) => {
+  try {
     const response = await instance.post(`${endpoints.journal}`, formData);
     return response.data.data as JournalEntryType;
+  } catch (error) {
+    console.error("Failed to create journal entry:", error);
+    throw error;
+  }
 };
 
 export const getJournalEntries = async (params?: {
-    destination?: string;
-    author?: string;
-    public?: boolean;
-    page?: number;
-    limit?: number;
+  destination?: string;
+  author?: string;
+  public?: boolean;
+  page?: number;
+  limit?: number;
 }) => {
+  try {
     const response = await instance.get(`${endpoints.journal}`, { params });
     return response.data.data as JournalEntryType[];
+  } catch (error) {
+    console.error("Failed to fetch journal entries:", error);
+    throw error;
+  }
 };
 
 export const getPublicJournalEntries = async (params?: { page?: number; limit?: number }) => {
+  try {
     const response = await instance.get(`${endpoints.journal}/public`, { params });
     return response.data.data as JournalEntryType[];
+  } catch (error) {
+    console.error("Failed to fetch public journal entries:", error);
+    throw error;
+  }
 };
 
 export const getJournalEntryById = async (id: string) => {
+  try {
     const response = await instance.get(`${endpoints.journal}/${id}`);
     return response.data.data as JournalEntryType;
+  } catch (error) {
+    console.error(`Failed to fetch journal entry ${id}:`, error);
+    throw error;
+  }
 };
 
 export const updateJournalEntry = async (id: string, formData: FormData) => {
+  try {
     const response = await instance.patch(`${endpoints.journal}/${id}`, formData);
     return response.data.data as JournalEntryType;
+  } catch (error) {
+    console.error(`Failed to update journal entry ${id}:`, error);
+    throw error;
+  }
 };
 
 export const deleteJournalEntry = async (id: string) => {
+  try {
     const response = await instance.delete(`${endpoints.journal}/${id}`);
     return response.data; // { success: boolean, message: string }
+  } catch (error) {
+    console.error(`Failed to delete journal entry ${id}:`, error);
+    throw error;
+  }
 };
 
 export const removePhoto = async (id: string, photoUrl: string) => {
+  try {
     const response = await instance.delete(`${endpoints.journal}/${id}/photos`, {
-        data: { photoUrl }
+      data: { photoUrl },
     });
     return response.data.data as JournalEntryType;
+  } catch (error) {
+    console.error(`Failed to remove photo from journal entry ${id}:`, error);
+    throw error;
+  }
 };
 
 export const toggleLike = async (id: string) => {
+  try {
     const response = await instance.post(`${endpoints.journal}/${id}/toggle-like`);
     return response.data.data as JournalEntryType;
+  } catch (error) {
+    console.error(`Failed to toggle like for journal entry ${id}:`, error);
+    throw error;
+  }
 };
