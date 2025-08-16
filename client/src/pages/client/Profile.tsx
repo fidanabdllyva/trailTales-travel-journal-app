@@ -30,8 +30,6 @@ import ProfileLocation from "@/components/client/ProfileLocation";
 import LoadingSpinner from "@/components/common/LoadingSpinner";
 import { FaTimes } from "react-icons/fa";
 import ProfileSocials from "@/components/client/ProfileSocials";
-import { Label } from "@/components/ui/label";
-import { Input } from "@/components/ui/input";
 import EditProfile from "@/components/client/EditProfile";
 import ProfileAvatar from "@/components/client/ProfileImage";
 import ChangePassword from "@/components/client/ChangePassword";
