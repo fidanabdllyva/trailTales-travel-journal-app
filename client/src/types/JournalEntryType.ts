@@ -1,4 +1,3 @@
-import type { DestinationType } from "./DestinationType";
 import type { User } from "./UserType";
 
 export interface Like {
@@ -12,9 +11,12 @@ export interface JournalEntryType {
   content: string;
   photos: { url: string; public_id: string }[];
   likes: Like[];
-  comments: string[]; // array of comment IDs
-  destination: DestinationType; 
-  author: User;  
+  comments: string[];
+  location: {
+    country: string;
+    city: string;
+  };
+  author: User;
   public: boolean;
   createdAt: Date;
   updatedAt: Date;

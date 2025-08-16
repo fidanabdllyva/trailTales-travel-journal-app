@@ -97,9 +97,42 @@ const MyLists = () => {
               )}
             </div>
 
+            <div className="flex  mt-3 items-center gap-2">
+              {/* Avatars */}
+              <div className="flex -space-x-2">
+                {list.collaborators.slice(0, 2).map((collab, i) => (
+                  <img
+                    key={i}
+                    src={collab.profileImage}
+                    alt={collab.fullName}
+                    className="w-7 h-7 rounded-full border-2 border-white object-cover"
+                  />
+                ))}
+
+                {list.collaborators.length > 2 && (
+                  <div className="w-7 h-7 rounded-full bg-gray-200 border-2 border-white flex items-center justify-center text-xs font-medium">
+                    +{list.collaborators.length - 2}
+                  </div>
+                )}
+              </div>
+
+              {/* Label */}
+              <span className="text-sm text-gray-600">
+                {list.collaborators.length} collaborator
+                {list.collaborators.length > 1 && "s"}
+              </span>
+
+              {/* Destinations count */}
+              <span className="text-xs text-gray-500">
+                {list.destinations.length} destination
+                {list.destinations.length > 1 && "s"}
+              </span>
+            </div>
+
+
             <div className="mt-4 self-end">
               <Link to={`/travel-list/${list.id}`}>
-                <Button variant="outline" size="sm" className="rounded-full">
+                <Button variant="outline" size="sm" className="rounded-full cursor-pointer">
                   View More →
                 </Button>
               </Link>

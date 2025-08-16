@@ -1,413 +1,257 @@
-import { useState, useEffect } from "react";
-import { useNavigate } from "react-router";
-import { Formik, Form, FieldArray, ErrorMessage } from "formik";
-import * as Yup from "yup";
-import {
-  Card,
-  CardHeader,
-  CardTitle,
-  CardDescription,
-  CardContent,
-} from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
+import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
-import {
-  Collapsible,
-  CollapsibleTrigger,
-  CollapsibleContent,
-} from "@/components/ui/collapsible";
-import { Upload, Trash } from "lucide-react";
-import { createTravelList, addCollaborator } from "@/api/requests/travelListService";
-import { createDestination } from "@/api/requests/destinationService";
-import { useSelector } from "react-redux";
-import type { RootState } from "@/redux/store";
-
-interface UserType {
-  id: string;
-  email: string;
-}
-
-interface DestinationType {
-  title: string;
-  description?: string;
-  country?: string;
-  datePlanned?: string;
-  status: string;
-  images: File[];
-}
-
-const schema = Yup.object({
-  title: Yup.string().required("Title is required"),
-  description: Yup.string().required("Description is required"),
-  tags: Yup.array().of(Yup.string()),
-  isPrivate: Yup.boolean(),
-  collaborators: Yup.array().of(
-    Yup.object({ id: Yup.string().required(), email: Yup.string().required() })
-  ),
-  destinations: Yup.array().of(
-    Yup.object({
-      title: Yup.string().required("Destination title is required"),
-      description: Yup.string(),
-      country: Yup.string().required("Country is required"),
-      datePlanned: Yup.string().required("Planned date is required"),
-      status: Yup.string().required(),
-      images: Yup.array(),
-    })
-  ),
-});
+import { Badge } from "@/components/ui/badge";
+import { Plus, Lock, Upload } from "lucide-react";
+import { Separator } from "@radix-ui/react-dropdown-menu";
+import DestinationForm from "@/components/client/DestinationForm";
+import { useFormik, FieldArray, FormikProvider } from "formik";
+import TravelListSchema from "@/validations/travelListValidationSchema";
+import DestinationSchema from "@/validations/destinationValidationSchema";
+import { useState } from "react";
 
 export default function CreateList() {
-  const currentUserId = useSelector((s: RootState) => s.user.data?.id);
-  const navigate = useNavigate();
-  const [coverImage, setCoverImage] = useState<File | null>(null);
+  const [tagInput, setTagInput] = useState("");
 
-  // Collaborator search
-  const [collabSearch, setCollabSearch] = useState("");
-  const [userResults, setUserResults] = useState<UserType[]>([]);
-
-  // Local state for destination form
-  const [destTitle, setDestTitle] = useState("");
-  const [destDescription, setDestDescription] = useState("");
-  const [destCountry, setDestCountry] = useState("");
-  const [destDatePlanned, setDestDatePlanned] = useState("");
-  const [destStatus, setDestStatus] = useState("planned");
-  const [destImages, setDestImages] = useState<File[]>([]);
-
-  const [loading, setLoading] = useState(false);
-
-  // Search collaborators
-
-
-  const initialValues = {
-    title: "",
-    description: "",
-    tags: [] as string[],
-    isPrivate: false,
-    collaborators: [] as UserType[],
-    destinations: [] as DestinationType[],
-  };
+  const formik = useFormik({
+    initialValues: {
+      title: "",
+      description: "",
+      tags: [],
+      isPublic: true,
+      coverImage: null,
+      public_id: "",
+      destinations: [],
+      collaborators: "",
+    },
+    validationSchema: TravelListSchema,
+    onSubmit: async (payload) => {
+      try {
+        console.log("Submitting payload:", payload);
+        alert("Travel list created!");
+      } catch (error) {
+        console.error(error);
+      }
+    },
+  });
 
   return (
-    <div className="max-w-3xl mx-auto p-6">
-      <Button variant="link" onClick={() => navigate("/dashboard")} className="mb-4">
-        ← Back to Dashboard
-      </Button>
+    <div className="mx-auto max-w-5xl px-4 pb-24">
+      <div className="mb-6 flex items-center gap-2 text-sm">
+        <a href="#" className="text-muted-foreground hover:text-foreground">← Back to Dashboard</a>
+      </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Create New Travel List</CardTitle>
-          <CardDescription>Plan your adventure</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <Formik
-            initialValues={initialValues}
-            validationSchema={schema}
-            onSubmit={async (values) => {
-              if (!coverImage) return alert("Cover image is required");
+      <h1 className="text-3xl font-semibold tracking-tight">Create New Travel List</h1>
+      <p className="mt-1 text-muted-foreground">Start planning your next adventure</p>
 
-              try {
-                setLoading(true);
-
-                if (!currentUserId) {
-                  alert("User not logged in");
-                  return;
-                }
-
-                // 1️⃣ Create travel list
-                const formData = new FormData();
-                formData.append("coverImage", coverImage);
-                formData.append("title", values.title);
-                formData.append("description", values.description);
-                values.tags.forEach((tag) => formData.append("tags[]", tag));
-                formData.append("isPublic", (!values.isPrivate).toString());
-                formData.append("owner", currentUserId);
-
-                const newList = await createTravelList(formData);
-
-                // 2️⃣ Add collaborators
-                for (const collab of values.collaborators) {
-                  await addCollaborator(newList.id, collab.id);
-                }
-
-                // 3️⃣ Create destinations
-                for (const dest of values.destinations) {
-                  const destForm = new FormData();
-                  destForm.append("listId", newList.id);
-                  destForm.append("name", dest.title); // map title -> name
-                  destForm.append("description", dest.description || "");
-                  destForm.append("country", dest.country || "");
-                  destForm.append("datePlanned", dest.datePlanned || new Date().toISOString());
-                  destForm.append("status", dest.status);
-                  dest.images.forEach((img) => destForm.append("images", img));
-
-                  await createDestination(destForm);
-                }
-
-                navigate(`/travel-list/${newList.id}`);
-              } catch (err: any) {
-                console.error("Error creating travel list:", err.response?.data || err.message);
-                alert("Failed to create travel list");
-              } finally {
-                setLoading(false);
-              }
-            }}
-          >
-            {({ values, setFieldValue }) => (
-              <Form className="space-y-6">
-                {/* Cover Image */}
-                <div>
-                  <label className="block font-medium mb-2">Cover Image *</label>
-                  <div className="border-2 border-dashed p-4 text-center rounded-lg">
-                    {coverImage ? (
-                      <img
-                        src={URL.createObjectURL(coverImage)}
-                        alt="Preview"
-                        className="w-full h-48 object-cover rounded mb-2"
-                      />
-                    ) : (
-                      <Upload className="mx-auto h-8 w-8 text-gray-500" />
-                    )}
-                    <Input
-                      type="file"
-                      accept="image/*"
-                      onChange={(e) => e.target.files && setCoverImage(e.target.files[0])}
-                      required
+      <FormikProvider value={formik}>
+        <form onSubmit={formik.handleSubmit}>
+          <Card className="mt-6">
+            <CardHeader>
+            </CardHeader>
+            <CardContent className="space-y-8">
+              <div className="rounded-lg border border-dashed flex flex-col items-center justify-center gap-3 text-center relative">
+                {formik.values.coverImage ? (
+                  // Preview of uploaded image
+                  <div className="h-60 w-full">
+                    <img
+                      src={URL.createObjectURL(formik.values.coverImage)}
+                      alt="Cover preview"
+                      className="w-full h-full object-cover rounded"
                     />
+
                   </div>
+                ) : (
+                  <>
+                  <div className="p-20 flex-col flex items-center">
+
+                    <Upload className="h-8 w-8 text-muted-foreground" />
+                    <p className="text-sm text-muted-foreground">Upload a cover image</p>
+                    <p className="text-xs text-muted-foreground">PNG, JPG up to 10MB</p>
+                  </div>
+                  </>
+                )}
+
+                <Input
+                  name="coverImage"
+                  type="file"
+                  className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                  onChange={(e) => formik.setFieldValue("coverImage", e.currentTarget.files?.[0] || null)}
+                  onBlur={formik.handleBlur}
+                />
+              </div>
+
+              {formik.errors.coverImage && formik.touched.coverImage && (
+                <p className="text-sm text-red-500">{formik.errors.coverImage}</p>
+              )}
+
+
+              {/* Title */}
+              <div className="space-y-2">
+                <Label>List Title *</Label>
+                <Input
+                  name="title"
+                  placeholder="e.g., European Adventure 2024"
+                  value={formik.values.title}
+                  onChange={formik.handleChange}
+                  onBlur={formik.handleBlur}
+                />
+                {formik.errors.title && formik.touched.title && (
+                  <p className="text-sm text-red-500">{formik.errors.title}</p>
+                )}
+              </div>
+
+              {/* Description */}
+              <div className="space-y-2">
+                <Label>Description</Label>
+                <Textarea
+                  name="description"
+                  placeholder="Describe your travel plans and what makes this trip special..."
+                  value={formik.values.description}
+                  onChange={formik.handleChange}
+                  onBlur={formik.handleBlur}
+                />
+                {formik.errors.description && formik.touched.description && (
+                  <p className="text-sm text-red-500">{formik.errors.description}</p>
+                )}
+              </div>
+
+              {/* Tags */}
+              <div className="space-y-2">
+                <Label>Tags</Label>
+                <div className="flex items-center gap-2">
+                  <Input
+                    placeholder="Add a tag (e.g., adventure, culture, food)"
+                    value={tagInput}
+                    onChange={(e) => setTagInput(e.target.value)}
+                  />
+                  <Button
+                    type="button"
+                    onClick={() => {
+                      if (tagInput.trim()) {
+                        formik.setFieldValue("tags", [...formik.values.tags, tagInput.trim()]);
+                        setTagInput("");
+                      }
+                    }}
+                  >
+                    Add
+                  </Button>
+                </div>
+                <div className="flex flex-wrap gap-2 pt-2">
+                  {formik.values.tags.map((tag, index) => (
+                    <Badge
+                      key={index}
+                      variant="secondary"
+                      className="cursor-pointer"
+                      onClick={() =>
+                        formik.setFieldValue(
+                          "tags",
+                          formik.values.tags.filter((_, i) => i !== index)
+                        )
+                      }
+                    >
+                      {tag} ✕
+                    </Badge>
+                  ))}
+                </div>
+                {formik.errors.tags && formik.touched.tags && (
+                  <p className="text-sm text-red-500">{formik.errors.tags}</p>
+                )}
+              </div>
+
+              {/* Privacy */}
+              <div className="space-y-3">
+                <Label className="mb-1 block">Privacy Settings</Label>
+                <div className="flex items-center justify-between rounded-lg border p-4">
+                  <div className="flex items-center gap-3">
+                    <Lock className="h-5 w-5" />
+                    <div>
+                      <p className="text-sm font-medium">Private List</p>
+                      <p className="text-sm text-muted-foreground">
+                        Only you and invited collaborators can view this list
+                      </p>
+                    </div>
+                  </div>
+                  <Switch
+                    checked={!formik.values.isPublic}
+                    onCheckedChange={(checked) => formik.setFieldValue("isPublic", !checked)}
+                  />
+                </div>
+                {formik.errors.isPublic && formik.touched.isPublic && (
+                  <p className="text-sm text-red-500">{formik.errors.isPublic}</p>
+                )}
+              </div>
+
+              {/* Collaborators */}
+              <div className="space-y-2">
+                <Label>Invite Collaborators</Label>
+                <Input
+                  name="collaborators"
+                  placeholder="Enter email addresses (comma separated)"
+                  value={formik.values.collaborators}
+                  onChange={formik.handleChange}
+                  onBlur={formik.handleBlur}
+                />
+                {formik.errors.collaborators && formik.touched.collaborators && (
+                  <p className="text-sm text-red-500">{formik.errors.collaborators}</p>
+                )}
+                <p className="text-xs text-muted-foreground">
+                  You can invite more people after creating the list
+                </p>
+              </div>
+
+              <Separator />
+
+              {/* Destinations */}
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-lg font-semibold">Destinations</h3>
+                  <FieldArray name="destinations">
+                    {({ push }) => (
+                      <Button type="button" variant="secondary" onClick={() => push({
+                        location: { country: "", city: "" },
+                        datePlanned: "",
+                        dateVisited: "",
+                        status: "wishlist",
+                        notes: "",
+                        image: { url: "", public_id: "" },
+                        listId: "",
+                      })}>
+                        <Plus className="mr-2 h-4 w-4" /> Add Destination
+                      </Button>
+                    )}
+                  </FieldArray>
                 </div>
 
-                {/* Title & Description */}
-                <Input
-                  placeholder="List Title *"
-                  value={values.title}
-                  onChange={(e) => setFieldValue("title", e.target.value)}
-                />
-                <ErrorMessage name="title" component="div" className="text-red-500 text-sm" />
-
-                <Textarea
-                  placeholder="Description *"
-                  value={values.description}
-                  onChange={(e) => setFieldValue("description", e.target.value)}
-                />
-                <ErrorMessage name="description" component="div" className="text-red-500 text-sm" />
-
-                {/* Tags */}
-                <FieldArray name="tags">
-                  {({ push, remove }) => (
-                    <div>
-                      <div className="flex gap-2 mb-2">
-                        <Input
-                          placeholder="Add a tag"
-                          onKeyDown={(e) => {
-                            if (e.key === "Enter") {
-                              e.preventDefault();
-                              const val = e.currentTarget.value.trim();
-                              if (val) {
-                                push(val);
-                                e.currentTarget.value = "";
-                              }
-                            }
-                          }}
-                        />
-                      </div>
-                      <div className="flex flex-wrap gap-2">
-                        {values.tags.map((tag, idx) => (
-                          <Badge key={idx} variant="secondary" onClick={() => remove(idx)}>
-                            {tag} ✕
-                          </Badge>
-                        ))}
-                      </div>
+                <FieldArray name="destinations">
+                  {({ remove }) => (
+                    <div className="space-y-6">
+                      {formik.values.destinations.map((_, index) => (
+                        <DestinationForm key={index} name={`destinations[${index}]`} index={index} />
+                      ))}
                     </div>
                   )}
                 </FieldArray>
 
-                {/* Privacy */}
-                <div className="flex items-center gap-2">
-                  <Switch
-                    checked={values.isPrivate}
-                    onCheckedChange={(val) => setFieldValue("isPrivate", val)}
-                  />
-                  <span>Private List</span>
-                </div>
+                {formik.errors.destinations && formik.touched.destinations && (
+                  <p className="text-sm text-red-500">{formik.errors.destinations}</p>
+                )}
+              </div>
 
-                {/* Collaborators */}
-                <div>
-                  <label className="block font-medium mb-2">Invite Collaborators</label>
-                  <Input
-                    placeholder="Search users..."
-                    value={collabSearch}
-                    onChange={(e) => setCollabSearch(e.target.value)}
-                  />
-                  <div className="mt-2 flex flex-wrap gap-2">
-                    {userResults.map((user) => (
-                      <Badge
-                        key={user.id}
-                        variant="outline"
-                        className="cursor-pointer"
-                        onClick={() => {
-                          if (!values.collaborators.find((c) => c.id === user.id)) {
-                            setFieldValue("collaborators", [...values.collaborators, user]);
-                          }
-                          setCollabSearch("");
-                          setUserResults([]);
-                        }}
-                      >
-                        {user.email} +
-                      </Badge>
-                    ))}
-                  </div>
-                  <div className="mt-2 flex flex-wrap gap-2">
-                    {values.collaborators.map((c, idx) => (
-                      <Badge
-                        key={idx}
-                        variant="secondary"
-                        onClick={() =>
-                          setFieldValue(
-                            "collaborators",
-                            values.collaborators.filter((_, i) => i !== idx)
-                          )
-                        }
-                      >
-                        {c.email} ✕
-                      </Badge>
-                    ))}
-                  </div>
-                </div>
+            </CardContent>
 
-                {/* Destinations */}
-                <Collapsible>
-                  <CollapsibleTrigger asChild>
-                    <Button variant="outline" className="w-full">
-                      Add Destinations
-                    </Button>
-                  </CollapsibleTrigger>
-                  <CollapsibleContent className="mt-4 space-y-4">
-                    <FieldArray name="destinations">
-                      {({ push, remove }) => (
-                        <div>
-                          <Input
-                            placeholder="Destination Title *"
-                            value={destTitle}
-                            onChange={(e) => setDestTitle(e.target.value)}
-                          />
-                          <Textarea
-                            placeholder="Destination Description"
-                            value={destDescription}
-                            onChange={(e) => setDestDescription(e.target.value)}
-                          />
-                          <Input
-                            placeholder="Country *"
-                            value={destCountry}
-                            onChange={(e) => setDestCountry(e.target.value)}
-                          />
-                          <Input
-                            type="date"
-                            placeholder="Planned Date *"
-                            value={destDatePlanned}
-                            onChange={(e) => setDestDatePlanned(e.target.value)}
-                          />
-                          <select
-                            value={destStatus}
-                            onChange={(e) => setDestStatus(e.target.value)}
-                            className="border rounded p-2 w-full"
-                          >
-                            <option value="planned">Planned</option>
-                            <option value="completed">Completed</option>
-                            <option value="wishlist">Wishlist</option>
-                          </select>
-                          <Input
-                            type="file"
-                            multiple
-                            onChange={(e) =>
-                              e.target.files &&
-                              setDestImages([...destImages, ...Array.from(e.target.files)])
-                            }
-                          />
-                          <div className="flex gap-2 flex-wrap mt-2">
-                            {destImages.map((img, idx) => (
-                              <div key={idx} className="relative">
-                                <img
-                                  src={URL.createObjectURL(img)}
-                                  alt="Preview"
-                                  className="w-20 h-20 object-cover rounded"
-                                />
-                                <button
-                                  type="button"
-                                  onClick={() =>
-                                    setDestImages(destImages.filter((_, i) => i !== idx))
-                                  }
-                                  className="absolute top-0 right-0 bg-red-500 text-white text-xs px-1 rounded"
-                                >
-                                  ✕
-                                </button>
-                              </div>
-                            ))}
-                          </div>
-                          <Button
-                            type="button"
-                            onClick={() => {
-                              if (!destTitle.trim() || !destCountry || !destDatePlanned) return;
-                              push({
-                                title: destTitle,
-                                description: destDescription,
-                                country: destCountry,
-                                datePlanned: destDatePlanned,
-                                status: destStatus,
-                                images: destImages,
-                              });
-                              setDestTitle("");
-                              setDestDescription("");
-                              setDestCountry("");
-                              setDestDatePlanned("");
-                              setDestStatus("planned");
-                              setDestImages([]);
-                            }}
-                          >
-                            Add Destination
-                          </Button>
-
-                          {/* Existing destinations */}
-                          {values.destinations.map((dest, idx) => (
-                            <Card key={idx} className="p-4 flex justify-between mt-2">
-                              <div>
-                                <p className="font-bold">{dest.title}</p>
-                                <p className="text-sm">{dest.description}</p>
-                                <p className="text-xs text-gray-500">
-                                  {dest.country} | {dest.datePlanned} | {dest.status}
-                                </p>
-                              </div>
-                              <Button
-                                size="icon"
-                                variant="destructive"
-                                onClick={() => remove(idx)}
-                              >
-                                <Trash size={16} />
-                              </Button>
-                            </Card>
-                          ))}
-                        </div>
-                      )}
-                    </FieldArray>
-                  </CollapsibleContent>
-                </Collapsible>
-
-                {/* Actions */}
-                <div className="flex justify-end gap-2">
-                  <Button variant="outline" onClick={() => navigate("/dashboard")}>
-                    Cancel
-                  </Button>
-                  <Button type="submit" disabled={loading}>
-                    {loading ? "Creating..." : "Create List"}
-                  </Button>
-                </div>
-              </Form>
-            )}
-          </Formik>
-        </CardContent>
-      </Card>
+            <CardFooter className="flex items-center pb-7 justify-end gap-3">
+              <Button type="button" variant="outline" onClick={() => formik.resetForm()}>
+                Cancel
+              </Button>
+              <Button type="submit">Create List</Button>
+            </CardFooter>
+          </Card>
+        </form>
+      </FormikProvider>
     </div>
   );
 }
