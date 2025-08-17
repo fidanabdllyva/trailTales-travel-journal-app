@@ -34,12 +34,16 @@ export default function Dashboard() {
   }, [token, isAuthenticated, userStatus, dispatch, navigate]);
 
   // Fetch travel lists
-  useEffect(() => {
-    getUserTravelLists()
-      .then((data) => setLists(data ?? []))
-      .catch(() => console.error("Failed to load lists"))
-      .finally(() => setLoading(false));
-  }, []);
+useEffect(() => {
+  getUserTravelLists()
+    .then((res) => {
+      console.log("API response:", res);
+      setLists(res.data ?? []); // ✅ use .data, not the whole response
+    })
+    .catch(() => console.error("Failed to load lists"))
+    .finally(() => setLoading(false));
+}, []);
+
 
   // Split lists
   const myId = userData?.id;

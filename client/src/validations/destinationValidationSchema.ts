@@ -26,10 +26,10 @@ const DestinationSchema = Yup.object().shape({
     .trim()
     .optional(),
 
-  image: Yup.object().shape({
-    url: Yup.string().required("Image URL is required").url("Must be a valid URL"),
-    public_id: Yup.string().optional(),
-  }).required("Image is required"),
+  // image: Yup.object().shape({
+  //   url: Yup.string().required("Image URL is required").url("Must be a valid URL"),
+  //   public_id: Yup.string().optional(),
+  // }).required("Image is required"),
 
   listId: Yup.string()
     .required("Travel list ID is required"),

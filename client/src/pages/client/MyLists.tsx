@@ -14,8 +14,8 @@ const MyLists = () => {
   useEffect(() => {
     const fetchLists = async () => {
       try {
-        const data = await getUserTravelLists();
-        setLists(data);
+        const res = await getUserTravelLists(); 
+        setLists(res.data ?? []);              
       } catch (error) {
         console.error("Error fetching lists:", error);
       } finally {
@@ -24,6 +24,7 @@ const MyLists = () => {
     };
     fetchLists();
   }, []);
+
 
   if (loading) {
     return (

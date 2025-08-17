@@ -83,8 +83,8 @@ export default function TravelListDetail() {
     (async () => {
       try {
         setLoading(true);
-        const data = await getTravelList(id);
-        setList(data);
+        const res = await getTravelList(id);
+        setList(res.data);
       } catch (error) {
         console.error("Failed to load travel list", error);
       } finally {
