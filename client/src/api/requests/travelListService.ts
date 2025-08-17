@@ -3,90 +3,129 @@ import instance from "../instance";
 import { endpoints } from "../constants";
 
 interface TravelListsResponse {
-    lists: TravelListType[];
-    totalPages: number;
-    currentPage: number;
-    total: number;
+  lists: TravelListType[];
+  totalPages: number;
+  currentPage: number;
+  total: number;
 }
 
-export const createTravelList = async (formData: FormData) => {
+interface ApiResponse<T> {
+  success?: boolean; 
+  message: string;
+  data: T;
+}
+
+// Create
+export const createTravelList = async (
+  formData: FormData
+): Promise<ApiResponse<TravelListType>> => {
   try {
-    const response = await instance.post(`${endpoints.list}`, formData);
-    return response.data.data.data as TravelListType;
+    const response = await instance.post(endpoints.list, formData);
+    return response.data as ApiResponse<TravelListType>;
   } catch (error) {
     console.error("Failed to create travel list:", error);
     throw error;
   }
 };
 
-export const getPublicTravelLists = async (params?: { page?: number; limit?: number; tag?: string }) => {
+// Public lists (paginated)
+export const getPublicTravelLists = async (
+  params?: { page?: number; limit?: number; tag?: string }
+): Promise<ApiResponse<TravelListsResponse>> => {
   try {
     const response = await instance.get(`${endpoints.list}/public`, { params });
-    return response.data.data as TravelListsResponse;
+    return response.data as ApiResponse<TravelListsResponse>;
   } catch (error) {
     console.error("Failed to fetch public travel lists:", error);
     throw error;
   }
 };
 
-export const getUserTravelLists = async () => {
+// User’s own lists
+export const getUserTravelLists = async (): Promise<
+  ApiResponse<TravelListType[]>
+> => {
   try {
     const response = await instance.get(`${endpoints.list}/user`);
-    return response.data.data as TravelListType[];
+    return response.data as ApiResponse<TravelListType[]>;
   } catch (error) {
     console.error("Failed to fetch user travel lists:", error);
     throw error;
   }
 };
 
-export const getTravelList = async (id: string) => {
+// Single list
+export const getTravelList = async (
+  id: string
+): Promise<ApiResponse<TravelListType | null>> => {
   try {
     const response = await instance.get(`${endpoints.list}/${id}`);
-    return response.data.data as TravelListType;
+    return response.data as ApiResponse<TravelListType | null>;
   } catch (error) {
     console.error(`Failed to fetch travel list ${id}:`, error);
     throw error;
   }
 };
 
-export const updateTravelList = async (id: string, formData: FormData) => {
+// Update
+export const updateTravelList = async (
+  id: string,
+  formData: FormData
+): Promise<ApiResponse<TravelListType>> => {
   try {
     const response = await instance.patch(`${endpoints.list}/${id}`, formData);
-    return response.data.data as TravelListType;
+    return response.data as ApiResponse<TravelListType>;
   } catch (error) {
     console.error(`Failed to update travel list ${id}:`, error);
     throw error;
   }
 };
 
-export const deleteTravelList = async (id: string) => {
+// Delete
+export const deleteTravelList = async (
+  id: string
+): Promise<ApiResponse<null>> => {
   try {
     const response = await instance.delete(`${endpoints.list}/${id}`);
-    return response.data; // { success: boolean, message: string }
+    return response.data as ApiResponse<null>;
   } catch (error) {
     console.error(`Failed to delete travel list ${id}:`, error);
     throw error;
   }
 };
 
-export const addCollaborator = async (listId: string, userId: string) => {
+// Add collaborator
+export const addCollaborator = async (
+  listId: string,
+  email: string
+): Promise<ApiResponse<null>> => {
   try {
-    const response = await instance.post(`${endpoints.list}/${listId}/collaborators`, { userId });
-    return response.data.data as TravelListType;
+    const response = await instance.post(
+      `${endpoints.list}/${listId}/collaborators`,
+      { email }
+    );
+    return response.data as ApiResponse<null>;
   } catch (error) {
     console.error(`Failed to add collaborator to list ${listId}:`, error);
     throw error;
   }
 };
 
-export const removeCollaborator = async (listId: string, userId: string) => {
+// Remove collaborator
+export const removeCollaborator = async (
+  listId: string,
+  collaboratorId: string
+): Promise<ApiResponse<TravelListType>> => {
   try {
-    const response = await instance.delete(`${endpoints.list}/${listId}/collaborators`, {
-      data: { userId },
-    });
-    return response.data.data as TravelListType;
+    const response = await instance.delete(
+      `${endpoints.list}/${listId}/collaborators/${collaboratorId}`
+    );
+    return response.data as ApiResponse<TravelListType>;
   } catch (error) {
-    console.error(`Failed to remove collaborator from list ${listId}:`, error);
+    console.error(
+      `Failed to remove collaborator ${collaboratorId} from list ${listId}:`,
+      error
+    );
     throw error;
   }
 };

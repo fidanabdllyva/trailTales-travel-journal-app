@@ -6,7 +6,7 @@ export interface DestinationType {
         country: string;
         city: string;
     };
-    datePlanned: Date | string;
+    datePlanned: Date | string | null;
     dateVisited: Date | null | string;
     status: 'wishlist' | 'planned' | 'completed' | 'cancelled';
     notes: string;
