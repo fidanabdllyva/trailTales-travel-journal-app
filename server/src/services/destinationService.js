@@ -3,7 +3,7 @@ const TravelListModel = require("../models/travelListModel");
 const cloudinary = require("cloudinary").v2;
 
 const createDestination = async (destinationData, file, userId) => {
-  const { country, city, datePlanned, dateVisited, status, notes, listId } = destinationData;
+  const { country, city, datePlanned, dateVisited, status, notes, listId, rating } = destinationData;
   let image = '';
   let public_id = '';
 
@@ -37,6 +37,7 @@ const createDestination = async (destinationData, file, userId) => {
       image,
       public_id,
       listId,
+      rating: status === "completed" ? rating : undefined
     });
 
     await destination.save();
@@ -88,18 +89,22 @@ const updateDestination = async (id, updateData, file, userId) => {
 
   }
 
-  // 2️⃣ Update allowed fields
-  const allowedUpdates = ["location", "datePlanned", "dateVisited", "status", "notes"];
+  const allowedUpdates = ["location", "datePlanned", "dateVisited", "status", "notes", "rating"];
   Object.keys(updateData).forEach(key => {
     if (allowedUpdates.includes(key)) {
       if (key === "location" && typeof updateData[key] === "object") {
         destination.location.country = updateData.location.country || destination.location.country;
         destination.location.city = updateData.location.city || destination.location.city;
+      } else if (key === "rating") {
+        if (destination.status === "completed") {
+          destination.rating = updateData.rating;
+        }
       } else {
         destination[key] = updateData[key];
       }
     }
   });
+
 
   await destination.save();
   return destination;

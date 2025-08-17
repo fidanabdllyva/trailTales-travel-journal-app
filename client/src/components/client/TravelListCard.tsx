@@ -1,26 +1,47 @@
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Progress } from "@/components/ui/progress"
-import { Globe, Lock, Users } from "lucide-react"
+import { ClockPlus, Globe, Lock, Share2, Users } from "lucide-react"
 import type { TravelListType } from "@/types/TravelListType"
 import type { RootState } from "@/redux/store"
 import { useSelector } from "react-redux"
 import { Link } from "react-router-dom"
+import { Button } from "../ui/button"
 
 interface TravelListCardProps {
   list: TravelListType
 }
 export default function TravelListCard({ list }: TravelListCardProps) {
-  const completed = list.destinations.filter((d) => d.status === "completed").length  || 0;
+  const completed = list.destinations.filter((d) => d.status === "completed").length || 0;
 
   const total = list.destinations?.length || 0;
   const progress = total > 0 ? (completed / total) * 100 : 0;
-  const visibility = list.isPublic ? "public" : "private";
 
   const currentUserId = useSelector((s: RootState) => s.user.data?.id);
   const isOwn = list.owner?.id === currentUserId;
 
   const collaboratorCount = list.collaborators?.length || 0;
+
+  const handleShare = async () => {
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: document.title,
+          url: window.location.href,
+        });
+      } catch (error) {
+        console.error("Share failed:", error);
+      }
+    } else {
+      // Fallback: copy link to clipboard
+      try {
+        await navigator.clipboard.writeText(window.location.href);
+        alert("Link copied to clipboard");
+      } catch (err) {
+        console.error("Copy failed:", err);
+      }
+    }
+  };
 
   return (
     <Card className="overflow-hidden border hover:shadow-lg transition-all cursor-pointer">
@@ -39,30 +60,61 @@ export default function TravelListCard({ list }: TravelListCardProps) {
 
         <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-black/10 to-transparent" />
 
-        <div className="absolute top-2 left-2 flex items-center gap-1 px-2 py-0.5 rounded-full bg-white/90 shadow">
-          {visibility === "public" ? <Globe size={14} /> : <Lock size={14} />}
-          <span className="text-xs capitalize">{visibility}</span>
+
+
+        <div className="absolute top-2 right-2 flex  gap-1 items-end">
+          <div
+            className={`px-2 py-0.5 rounded-full text-black text-xs bg-muted`}
+          >
+            {list.isPublic ? (<>
+              <div className="flex items-center gap-1">
+                <Globe size={13} />
+                <span className="font-medium">Public</span>
+
+              </div>
+            </>) :
+              (<>
+                <div className="flex items-center gap-1">
+                  <Lock size={13} />
+                  <span className="font-medium">Private</span>
+
+                </div>
+              </>)}
+          </div>
+          {isNew(list.createdAt) && (
+            <div className="px-2 py-0.5 flex items-center gap-1 rounded-full bg-purple-500 text-white text-xs">
+              <ClockPlus size={13} />
+              New
+            </div>
+          )}
         </div>
 
-        {isNew(list.createdAt) && (
-          <div className="absolute top-2 right-2 px-2 py-0.5 rounded-full bg-red-500 text-white text-xs">
-            New
-          </div>
-        )}
+
       </div>
 
-      <CardHeader>
-        <CardTitle className="text-base line-clamp-1">
-          <Link to={`/travel-list/${list.id}`}>{list.title}</Link>
-        </CardTitle>
-        <CardDescription className="text-sm line-clamp-2">{list.description}</CardDescription>
+      <CardHeader className="flex items-center justify-between">
+        <div>
+
+          <CardTitle className="text-base line-clamp-1">
+            <Link to={`/travel-list/${list.id}`} className="text-xl">{list.title}</Link>
+          </CardTitle>
+          <CardDescription className="text-sm line-clamp-2">{list.description}</CardDescription>
+        </div>
+
+        <Button variant="ghost" className="cursor-pointer" size="icon" onClick={handleShare}>
+          <Share2 size={17} />
+        </Button>
       </CardHeader>
 
       <CardContent className="space-y-2">
-        <p className="text-sm font-medium">
-          {completed}/{total} destinations completed
-        </p>
-        <Progress value={progress} />
+        <div className="flex items-center justify-between">
+
+          <p className="text-sm text-muted-foreground">
+            {completed}/{total} destinations completed
+          </p>
+          <Progress className="flex-1 max-w-[150px]" value={progress} />
+
+        </div>
         {list.tags?.length > 0 && (
           <div className="flex flex-wrap gap-1">
             {list.tags.map((tag, idx) => (

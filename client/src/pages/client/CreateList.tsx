@@ -38,6 +38,7 @@ export default function CreateList() {
           image: null,
           public_id: "",
           listId: "",
+          rating: null
         }
       ],
     },
@@ -69,9 +70,21 @@ export default function CreateList() {
           const destForm = new FormData();
           destForm.append("country", dest.location.country);
           destForm.append("city", dest.location.city);
-          destForm.append("datePlanned", dest.datePlanned);
-          if (dest.dateVisited) destForm.append("dateVisited", dest.dateVisited);
           destForm.append("status", dest.status || "wishlist");
+
+          // Append dates based on status
+          if (dest.status === "planned" || dest.status === "completed") {
+            destForm.append("datePlanned", dest.datePlanned);
+          }
+          if (dest.status === "completed" && dest.dateVisited) {
+            destForm.append("dateVisited", dest.dateVisited);
+          }
+
+          // Append rating if completed
+          if (dest.status === "completed" && dest.rating) {
+            destForm.append("rating", String(dest.rating));
+          }
+
           if (dest.notes) destForm.append("notes", dest.notes);
           destForm.append("listId", listId);
           if (dest.image) destForm.append("image", dest.image);
@@ -79,11 +92,11 @@ export default function CreateList() {
           const destResult = await createDestination(destForm);
           console.log(`Destination #${index + 1} created:`, destResult.data);
 
-          // Push each created destination
           createdDestinations.push(destResult.data);
         }
 
-        
+
+
 
         alert(`Travel list created! ${createdDestinations.length} destinations saved.`);
 
@@ -254,7 +267,9 @@ export default function CreateList() {
 
             <CardFooter className="flex justify-end  gap-3">
               <Button type="button" variant="outline" onClick={() => formik.resetForm()}>Cancel</Button>
-              <Button type="submit">Create List</Button>
+              <Button type="submit">
+                {formik.isSubmitting ? "Creating..." : "Create List"}
+              </Button>
             </CardFooter>
           </Card>
         </form>

@@ -15,4 +15,5 @@ export interface DestinationType {
     list: TravelListType;
     createdAt: Date;
     updatedAt: Date;
+    rating:number
 }

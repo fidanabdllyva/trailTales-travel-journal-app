@@ -68,7 +68,7 @@ const MyLists = () => {
           className="flex flex-row w-full overflow-hidden rounded-xl shadow-sm hover:shadow-md transition-shadow items-stretch"
         >
           {/* Left: Image */}
-          <div className="w-1/4 h-50">
+          <div className="w-1/4 h-60">
             <img
               src={list.coverImage}
               alt={list.title}

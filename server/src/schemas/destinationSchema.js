@@ -24,6 +24,14 @@ const destinationSchema = new mongoose.Schema(
             ref: 'TravelList',
             required: true,
         },
+        rating: {
+            type: Number,
+            min: 1,
+            max: 5,
+            required: function () {
+                return this.status === 'completed';
+            }
+        },
     }
     , { timestamps: true }
 )

@@ -180,7 +180,7 @@ export default function TravelListDetail() {
         />
         <StatCard
           icon={<Pencil className="h-5 w-5 text-orange-500" />}
-          value={ 0}
+          value={0}
           label="Journal Entries"
         />
       </div>
@@ -205,34 +205,78 @@ export default function TravelListDetail() {
         {/* Destinations */}
         <TabsContent value="destinations" className="space-y-4">
           {list.destinations.map((d) => (
-            <Card key={d.id} className="flex">
+            <Card key={d.id} className="flex flex-row mb-6 rounded-lg overflow-hidden">
+              {/* Left: Image */}
+              <div className="w-110 h-90 bg-gray-100 flex items-center justify-center shrink-0">
+                {d.image ? (
+                  <img
+                    src={d.image}
+                    alt={`${d.location.city}, ${d.location.country}`}
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <CalendarDays className="w-6 h-6 text-gray-400" />
+                )}
+              </div>
 
-              <img
-                src={d.image}
-                alt={d.location.country}
-                className="w-40 h-32 object-cover"
-              />
+              {/* Right: Content */}
+              <div className="ml-4 flex-1 py-4">
+                {/* City + Country */}
+                <h3 className="text-xl font-semibold">
+                  {d.location.city}, {d.location.country}
+                </h3>
+                <p className="text-gray-500">{d.location.country}</p>
 
-              <div className="p-4 flex-1">
-                <h3 className="text-xl font-semibold">{d.location.city}, {d.location.country} </h3>
-                <p className="text-gray-500">{d.location.city}</p>
-                <p>{d.status}</p>
-                <p className="text-gray-600 mt-2">{d.notes}</p>
-                <div className="mt-2 text-sm text-gray-500 flex gap-4">
-                  {d.datePlanned && (
-                    <span>
-                      <CalendarDays /> Planned: {formatDate(d.datePlanned)}
+                {/* Status */}
+                <div className="mt-1">
+                  {d.status === "completed" ? (
+                    <span className="inline-flex items-center gap-1 text-green-700 text-sm font-medium px-2 py-0.5 rounded-full bg-green-100">
+                      ✔ Completed
                     </span>
-                  )}
-                  {d.dateVisited && (
-                    <span>
-                      <CalendarDays /> Visited: {formatDate(d.dateVisited)}
+                  ) : (
+                    <span className="inline-flex items-center gap-1 text-blue-700 text-sm font-medium px-2 py-0.5 rounded-full bg-blue-100">
+                      ⏳ Planned
                     </span>
                   )}
                 </div>
+
+                {/* Rating (only if completed) */}
+                {d.status === "completed" && (
+                  <div className="flex items-center mt-2 text-yellow-500">
+                    {"★".repeat(d.rating || 5)}
+                    {"☆".repeat(5 - (d.rating || 5))}
+                    <span className="ml-2 text-gray-600 text-sm">({d.rating || 5}/5)</span>
+                  </div>
+                )}
+
+                {/* Notes */}
+                {d.notes && <p className="text-gray-700 mt-2">{d.notes}</p>}
+
+                {/* Dates */}
+                <div className="mt-2 text-sm text-gray-500 flex gap-4">
+                  {d.datePlanned && (
+                    <span className="flex items-center gap-1">
+                      <CalendarDays className="w-4 h-4" /> Planned: {formatDate(d.datePlanned)}
+                    </span>
+                  )}
+                  {d.dateVisited && (
+                    <span className="flex items-center gap-1">
+                      <CalendarDays className="w-4 h-4" /> Visited: {formatDate(d.dateVisited)}
+                    </span>
+                  )}
+                </div>
+
+                {/* Journal entry count */}
+                {d.journalEntries?.length > 0 && (
+                  <p className="text-sm text-gray-500 mt-1">
+                    ✏ {d.journalEntries.length} journal entry{d.journalEntries.length > 1 ? "ies" : ""}
+                  </p>
+                )}
               </div>
             </Card>
+
           ))}
+
         </TabsContent>
 
         {/* Journals */}
