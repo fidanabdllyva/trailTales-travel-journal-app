@@ -10,10 +10,8 @@ export interface DestinationType {
     dateVisited: Date | null | string;
     status: 'wishlist' | 'planned' | 'completed' | 'cancelled';
     notes: string;
-    image: {
-        url: string;
-        public_id: string;
-    };
+    image: string;
+    public_id: string;
     list: TravelListType;
     createdAt: Date;
     updatedAt: Date;

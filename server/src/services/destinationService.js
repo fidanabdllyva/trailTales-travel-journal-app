@@ -8,17 +8,15 @@ const createDestination = async (destinationData, file, userId) => {
   let public_id = '';
 
   try {
-    // 1️⃣ Upload single image if provided
     if (file) {
       const res = await cloudinary.uploader.upload(file.path || file, {
         folder: "destinations",
         resource_type: "auto",
       });
       image = res.secure_url;
-      public_id = res.public_id
+      public_id = res.public_id;
     }
 
-    // 2️⃣ Fetch travel list & check access
     const travelList = await TravelListModel.findById(listId);
     if (!travelList) throw new Error("Travel list not found");
 
@@ -30,7 +28,6 @@ const createDestination = async (destinationData, file, userId) => {
       throw new Error("Not authorized to add destinations to this list");
     }
 
-    // 3️⃣ Create new destination
     const destination = new DestinationModel({
       location: { country, city },
       datePlanned,
@@ -44,23 +41,21 @@ const createDestination = async (destinationData, file, userId) => {
 
     await destination.save();
 
-    // 4️⃣ Add to travel list
+    // Push destination ID into travel list
     travelList.destinations.push(destination._id);
     await travelList.save();
 
-    // 5️⃣ Return populated destination
+    // Populate list with destinations before returning
     const populatedDestination = await DestinationModel.findById(destination._id)
       .populate("listId", "title owner");
 
     return { success: true, message: "Destination created successfully", data: populatedDestination };
   } catch (err) {
-    // Clean up uploaded image if save fails
-    if (public_id) {
-      await cloudinary.uploader.destroy(public_id);
-    }
+    if (public_id) await cloudinary.uploader.destroy(public_id);
     throw new Error(err.message);
   }
 };
+
 
 const updateDestination = async (id, updateData, file, userId) => {
   const destination = await DestinationModel.findById(id);
