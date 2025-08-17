@@ -26,9 +26,9 @@ const createTravelList = async (listData, file, userId) => {
             title,
             description,
             tags: Array.isArray(tags)
-                ? tags.map(tag => tag.trim())
+                ? tags.map(t => t.trim())
                 : tags
-                    ? tags.split(',').map(tag => tag.trim())
+                    ? JSON.parse(tags).map(t => t.trim())
                     : [],
             isPublic: isPublic !== undefined ? isPublic : true,
             owner: userId,
