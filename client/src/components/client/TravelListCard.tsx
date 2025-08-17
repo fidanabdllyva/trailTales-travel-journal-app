@@ -10,24 +10,20 @@ import { Link } from "react-router-dom"
 interface TravelListCardProps {
   list: TravelListType
 }
-
 export default function TravelListCard({ list }: TravelListCardProps) {
-  const completed = list.destinations?.filter(
-    d =>
-      d.status === "completed" ||
-      (d.dateVisited && new Date(d.dateVisited).toString() !== "Invalid Date")
-  ).length || 0
+  const completed = list.destinations.filter((d) => d.status === "completed").length  || 0;
 
-  const total = list.destinations?.length || 0
-  const progress = total > 0 ? (completed / total) * 100 : 0
-  const visibility = list.isPublic ? "public" : "private"
-  const currentUserId = useSelector((s: RootState) => s.user.data?.id)
-  const isOwn = list.owner?.id === currentUserId
+  const total = list.destinations?.length || 0;
+  const progress = total > 0 ? (completed / total) * 100 : 0;
+  const visibility = list.isPublic ? "public" : "private";
 
+  const currentUserId = useSelector((s: RootState) => s.user.data?.id);
+  const isOwn = list.owner?.id === currentUserId;
+
+  const collaboratorCount = list.collaborators?.length || 0;
 
   return (
     <Card className="overflow-hidden border hover:shadow-lg transition-all cursor-pointer">
-      {/* Image container */}
       <div className="relative h-48 w-full overflow-hidden">
         {list.coverImage ? (
           <img
@@ -41,16 +37,13 @@ export default function TravelListCard({ list }: TravelListCardProps) {
           </div>
         )}
 
-        {/* Gradient overlay */}
         <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-black/10 to-transparent" />
 
-        {/* Visibility */}
         <div className="absolute top-2 left-2 flex items-center gap-1 px-2 py-0.5 rounded-full bg-white/90 shadow">
           {visibility === "public" ? <Globe size={14} /> : <Lock size={14} />}
           <span className="text-xs capitalize">{visibility}</span>
         </div>
 
-        {/* New badge */}
         {isNew(list.createdAt) && (
           <div className="absolute top-2 right-2 px-2 py-0.5 rounded-full bg-red-500 text-white text-xs">
             New
@@ -61,7 +54,7 @@ export default function TravelListCard({ list }: TravelListCardProps) {
       <CardHeader>
         <CardTitle className="text-base line-clamp-1">
           <Link to={`/travel-list/${list.id}`}>{list.title}</Link>
-          </CardTitle>
+        </CardTitle>
         <CardDescription className="text-sm line-clamp-2">{list.description}</CardDescription>
       </CardHeader>
 
@@ -84,8 +77,7 @@ export default function TravelListCard({ list }: TravelListCardProps) {
       <CardFooter className="flex items-center pb-6 justify-between text-xs text-muted-foreground">
         {isOwn ? (
           <div className="flex items-center gap-1">
-            <Users size={14} /> {list.collaborators?.length || 0} collaborator
-            {list.collaborators?.length !== 1 && "s"}
+            <Users size={14} /> {collaboratorCount} collaborator{collaboratorCount !== 1 ? "s" : ""}
           </div>
         ) : (
           <div className="flex items-center gap-2">
@@ -105,12 +97,14 @@ export default function TravelListCard({ list }: TravelListCardProps) {
         )}
         <span>Created {new Date(list.createdAt).toLocaleDateString()}</span>
       </CardFooter>
-
     </Card>
-  )
+  );
 }
 
-function isNew(createdAt: Date) {
-  const daysOld = (Date.now() - new Date(createdAt).getTime()) / (1000 * 60 * 60 * 24)
-  return daysOld <= 7 // within the last week
+function isNew(createdAt: string | Date) {
+  const createdTime = new Date(createdAt).getTime();
+  if (isNaN(createdTime)) return false;
+  const daysOld = (Date.now() - createdTime) / (1000 * 60 * 60 * 24);
+  return daysOld <= 2;
 }
+

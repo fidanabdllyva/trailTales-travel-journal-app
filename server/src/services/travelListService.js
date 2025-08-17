@@ -256,6 +256,7 @@ const removeCollaborator = async (listId, collaboratorId, userId) => {
 };
 
 
+
 module.exports = {
     createTravelList,
     getPublicTravelLists,

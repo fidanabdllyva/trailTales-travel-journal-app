@@ -10,13 +10,16 @@ import { Separator } from "@radix-ui/react-dropdown-menu";
 import DestinationForm from "@/components/client/DestinationForm";
 import { useFormik, FieldArray, FormikProvider } from "formik";
 import { useState } from "react";
-import { createTravelList } from "@/api/requests/travelListService";
+import { createTravelList, getTravelList } from "@/api/requests/travelListService";
 import { createDestination } from "@/api/requests/destinationService";
 import type { DestinationType } from "@/types/DestinationType";
+import { travelListValidationSchema } from "@/validations/travelListValidationSchema";
+import { useNavigate } from "react-router";
 
 export default function CreateList() {
   const [tagInput, setTagInput] = useState("");
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const navigate = useNavigate()
 
   const formik = useFormik({
     initialValues: {
@@ -25,24 +28,36 @@ export default function CreateList() {
       tags: [] as string[],
       isPublic: true,
       coverImage: null as File | null,
-      destinations: [] as (DestinationType & { image?: File | null })[],
-      collaborators: [] as string[],
+      destinations: [
+        {
+          location: { country: "", city: "" },
+          datePlanned: "",
+          dateVisited: "",
+          status: "wishlist",
+          notes: "",
+          image: null,
+          public_id: "",
+          listId: "",
+        }
+      ],
     },
+    validationSchema: travelListValidationSchema,
     onSubmit: async (values) => {
       try {
+        console.log("Submitting travel list with values:", values);
+
         // --- 1️⃣ Create Travel List ---
         const formData = new FormData();
         formData.append("title", values.title);
         formData.append("description", values.description);
         formData.append("isPublic", values.isPublic.toString());
         formData.append("tags", JSON.stringify(values.tags));
-        formData.append("collaborators", JSON.stringify(values.collaborators));
         if (values.coverImage) formData.append("coverImage", values.coverImage);
 
-        const result = await createTravelList(formData);
-        console.log("Travel list created:", result);
+        const listResult = await createTravelList(formData);
+        const listId = listResult.data.data.id;
 
-        if (!result?.data.data.id) {
+        if (!listId) {
           console.error("No travel list ID returned. Cannot create destinations.");
           return;
         }
@@ -51,35 +66,39 @@ export default function CreateList() {
         const createdDestinations: any[] = [];
 
         for (const [index, dest] of values.destinations.entries()) {
-          try {
-            const destForm = new FormData();
-            destForm.append("country", dest.location.country);
-            destForm.append("city", dest.location.city);
-            destForm.append("datePlanned", dest.datePlanned);
-            if (dest.dateVisited) destForm.append("dateVisited", dest.dateVisited);
-            if (dest.status) destForm.append("status", dest.status);
-            if (dest.notes) destForm.append("notes", dest.notes);
-            destForm.append("listId", result.data.data.id);
-            if (dest.image) destForm.append("image", dest.image);
+          const destForm = new FormData();
+          destForm.append("country", dest.location.country);
+          destForm.append("city", dest.location.city);
+          destForm.append("datePlanned", dest.datePlanned);
+          if (dest.dateVisited) destForm.append("dateVisited", dest.dateVisited);
+          destForm.append("status", dest.status || "wishlist");
+          if (dest.notes) destForm.append("notes", dest.notes);
+          destForm.append("listId", listId);
+          if (dest.image) destForm.append("image", dest.image);
 
-            const destResult = await createDestination(destForm);
-            console.log(`Destination #${index + 1} created:`, destResult);
-            createdDestinations.push(destResult.data);
-          } catch (err) {
-            console.error(`Failed to create destination #${index + 1}:`, err);
-          }
+          const destResult = await createDestination(destForm);
+          console.log(`Destination #${index + 1} created:`, destResult.data);
+
+          // Push each created destination
+          createdDestinations.push(destResult.data);
         }
+
+        
 
         alert(`Travel list created! ${createdDestinations.length} destinations saved.`);
 
-        // Reset form and preview
+        navigate(`/travel-list/${listId}`)
+
+        // --- 4️⃣ Reset form & preview ---
         formik.resetForm();
         setPreviewUrl(null);
+
       } catch (err) {
         console.error("Failed to create travel list:", err);
         alert("Error creating travel list. Check console for details.");
       }
     }
+
 
     ,
   });
@@ -91,7 +110,7 @@ export default function CreateList() {
 
       <FormikProvider value={formik}>
         <form onSubmit={formik.handleSubmit}>
-          <Card className="mt-6">
+          <Card className="mt-6 py-6">
             <CardContent className="space-y-8">
               {/* Cover Image */}
               <div className="rounded-lg border border-dashed flex flex-col items-center justify-center gap-3 text-center relative">
@@ -114,7 +133,11 @@ export default function CreateList() {
                     setPreviewUrl(URL.createObjectURL(file));
                     formik.setFieldValue("coverImage", file);
                   }}
+                  onBlur={formik.handleBlur}
                 />
+                {formik.touched.coverImage && formik.errors.coverImage && (
+                  <p className="text-red-500 text-sm">{formik.errors.coverImage}</p>
+                )}
               </div>
 
               {/* Title */}
@@ -124,8 +147,12 @@ export default function CreateList() {
                   name="title"
                   value={formik.values.title}
                   onChange={formik.handleChange}
+                  onBlur={formik.handleBlur}
                   placeholder="European Adventure 2024"
                 />
+                {formik.touched.title && formik.errors.title && (
+                  <p className="text-red-500 text-sm">{formik.errors.title}</p>
+                )}
               </div>
 
               {/* Description */}
@@ -135,8 +162,12 @@ export default function CreateList() {
                   name="description"
                   value={formik.values.description}
                   onChange={formik.handleChange}
+                  onBlur={formik.handleBlur}
                   placeholder="Describe your travel plans..."
                 />
+                {formik.touched.description && formik.errors.description && (
+                  <p className="text-red-500 text-sm">{formik.errors.description}</p>
+                )}
               </div>
 
               {/* Tags */}
@@ -162,76 +193,66 @@ export default function CreateList() {
                 </div>
                 <div className="flex flex-wrap gap-2 pt-2">
                   {formik.values.tags.map((tag, i) => (
-                    <Badge key={i} variant="secondary" onClick={() => formik.setFieldValue("tags", formik.values.tags.filter((_, idx) => idx !== i))}>
+                    <Badge
+                      key={i}
+                      variant="secondary"
+                      onClick={() =>
+                        formik.setFieldValue(
+                          "tags",
+                          formik.values.tags.filter((_, idx) => idx !== i)
+                        )
+                      }
+                    >
                       {tag} ✕
                     </Badge>
                   ))}
                 </div>
+                {formik.touched.tags && formik.errors.tags && (
+                  <p className="text-red-500 text-sm">{formik.errors.tags}</p>
+                )}
               </div>
 
-              {/* Privacy */}
-              <div className="flex items-center justify-between p-4 border rounded">
-                <Lock className="h-5 w-5" />
-                <Switch
-                  checked={!formik.values.isPublic}
-                  onCheckedChange={(checked) => formik.setFieldValue("isPublic", !checked)}
-                />
-              </div>
 
-              {/* Collaborators */}
-              <FieldArray name="collaborators">
-                {({ push, remove }) => (
-                  <div>
-                    {formik.values.collaborators.map((email, idx) => (
-                      <div key={idx} className="flex gap-2 items-center">
-                        <Input value={email} onChange={(e) => formik.setFieldValue(`collaborators[${idx}]`, e.target.value)} />
-                        <Button type="button" onClick={() => remove(idx)}>Remove</Button>
-                      </div>
+              {/* Destinations */}
+              <FieldArray name="destinations">
+                {({ push }) => (
+                  <div className="space-y-4">
+                    {formik.values.destinations.map((_, index) => (
+                      <DestinationForm
+                        key={index}
+                        name={`destinations[${index}]`}
+                        index={index}
+                        formik={formik} // pass formik to DestinationForm to show errors
+                        onRemove={(i) => formik.setFieldValue("destinations", formik.values.destinations.filter((_, idx) => idx !== i))}
+                      />
                     ))}
-                    <Button type="button" onClick={() => push("")}>+ Add Collaborator</Button>
+                    {formik.touched.destinations && typeof formik.errors.destinations === "string" && (
+                      <p className="text-red-500 text-sm">{formik.errors.destinations}</p>
+                    )}
+                    <Button type="button" onClick={() =>
+                      push({
+                        location: { country: "", city: "" },
+                        datePlanned: "",
+                        dateVisited: "",
+                        status: "wishlist",
+                        notes: "",
+                        image: null,
+                        public_id: "",
+                        listId: "",
+                      })
+                    }>
+                      <Plus className="mr-2 h-4 w-4" /> Add Destination
+                    </Button>
                   </div>
                 )}
               </FieldArray>
 
+
               <Separator />
 
-              {/* Destinations */}
-              <div className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <h3 className="text-lg font-semibold">Destinations</h3>
-                  <FieldArray name="destinations">
-                    {({ push }) => (
-                      <Button type="button" onClick={() =>
-                        push({
-                          location: { country: "", city: "" },
-                          datePlanned: "",
-                          dateVisited: "",
-                          status: "wishlist",
-                          notes: "",
-                          image: null,
-                          public_id: "",
-                          listId: "",
-                        })
-                      }>
-                        <Plus className="mr-2 h-4 w-4" /> Add Destination
-                      </Button>
-                    )}
-                  </FieldArray>
-                </div>
-
-                {formik.values.destinations.map((_, index) => (
-                  <DestinationForm
-                    key={index}
-                    name={`destinations[${index}]`}
-                    index={index}
-                    onRemove={(i) => formik.setFieldValue("destinations", formik.values.destinations.filter((_, idx) => idx !== i))}
-                  />
-                ))}
-
-              </div>
             </CardContent>
 
-            <CardFooter className="flex justify-end gap-3">
+            <CardFooter className="flex justify-end  gap-3">
               <Button type="button" variant="outline" onClick={() => formik.resetForm()}>Cancel</Button>
               <Button type="submit">Create List</Button>
             </CardFooter>
