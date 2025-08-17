@@ -2,19 +2,20 @@ const DestinationModel = require("../models/destinationModel");
 const TravelListModel = require("../models/travelListModel");
 const cloudinary = require("cloudinary").v2;
 
-const createDestination = async (destinationData, files, userId) => {
+const createDestination = async (destinationData, file, userId) => {
   const { country, city, datePlanned, dateVisited, status, notes, listId } = destinationData;
-  let uploadedImage = null;
+  let image = '';
+  let public_id = '';
 
   try {
     // 1️⃣ Upload single image if provided
-    if (files && files.length > 0) {
-      const file = files[0];
+    if (file) {
       const res = await cloudinary.uploader.upload(file.path || file, {
         folder: "destinations",
-        resource_type: "auto"
+        resource_type: "auto",
       });
-      uploadedImage = { url: res.secure_url, public_id: res.public_id };
+      image = res.secure_url;
+      public_id = res.public_id
     }
 
     // 2️⃣ Fetch travel list & check access
@@ -36,8 +37,9 @@ const createDestination = async (destinationData, files, userId) => {
       dateVisited: dateVisited || null,
       status: status || "wishlist",
       notes: notes || "",
-      image: uploadedImage,
-      listId
+      image,
+      public_id,
+      listId,
     });
 
     await destination.save();
@@ -53,14 +55,14 @@ const createDestination = async (destinationData, files, userId) => {
     return { success: true, message: "Destination created successfully", data: populatedDestination };
   } catch (err) {
     // Clean up uploaded image if save fails
-    if (uploadedImage) {
-      await cloudinary.uploader.destroy(uploadedImage.public_id);
+    if (public_id) {
+      await cloudinary.uploader.destroy(public_id);
     }
     throw new Error(err.message);
   }
 };
 
-const updateDestination = async (id, updateData, files, userId) => {
+const updateDestination = async (id, updateData, file, userId) => {
   const destination = await DestinationModel.findById(id);
   if (!destination) throw new Error("Destination not found");
 
@@ -77,18 +79,18 @@ const updateDestination = async (id, updateData, files, userId) => {
   }
 
   // 1️⃣ Replace image if new one provided
-  if (files && files.length > 0) {
-    // delete old image from Cloudinary
-    if (destination.image && destination.image.public_id) {
-      await cloudinary.uploader.destroy(destination.image.public_id);
+  if (file) {
+    if (destination.image) {
+      await cloudinary.uploader.destroy(destination.public_id);
     }
 
-    const file = files[0];
     const res = await cloudinary.uploader.upload(file.path || file, {
       folder: "destinations",
-      resource_type: "auto"
+      resource_type: "auto",
     });
-    destination.image = { url: res.secure_url, public_id: res.public_id };
+    destination.image = res.secure_url;
+    destination.public_id = res.public_id;
+
   }
 
   // 2️⃣ Update allowed fields
@@ -124,9 +126,9 @@ const deleteDestination = async (id, userId) => {
     throw new Error("Not authorized to delete this destination");
   }
 
-  // Delete image from Cloudinary
-  if (destination.image && destination.image.public_id) {
-    await cloudinary.uploader.destroy(destination.image.public_id);
+  // Delete image from Cloudinary if exists
+  if (destination.image && destination.public_id) {
+    await cloudinary.uploader.destroy(destination.public_id);
   }
 
   // Remove destination from travel list
@@ -151,11 +153,11 @@ const removeImage = async (destinationId, userId) => {
     throw new Error("Not authorized to modify this destination");
   }
 
-  if (destination.image && destination.image.public_id) {
-    await cloudinary.uploader.destroy(destination.image.public_id);
+  if (destination.image && destination.public_id) {
+    await cloudinary.uploader.destroy(destination.public_id);
   }
-
   destination.image = null;
+  destination.public_id = null;
   await destination.save();
 
   return destination;
@@ -163,13 +165,13 @@ const removeImage = async (destinationId, userId) => {
 
 module.exports = {
   createDestination,
-  getDestinationsByList: async (listId, status, userId) => {
+  getDestinationsByList: async (listId, status) => {
     const query = { listId };
     if (status) query.status = status;
     return await DestinationModel.find(query).sort({ datePlanned: 1 });
   },
-  getDestination: async (id, userId) => DestinationModel.findById(id),
+  getDestination: async (id) => DestinationModel.findById(id),
   updateDestination,
   deleteDestination,
-  removeImage
+  removeImage,
 };
