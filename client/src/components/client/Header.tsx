@@ -75,7 +75,7 @@ console.log(userData , "userData in header");
             My Lists
           </NavLink>
           <NavLink to="/my-journals" className="hover:text-purple-800 transition">
-            Journal
+           My Journals
           </NavLink>
           <NavLink to="/explore" className="hover:text-purple-800 transition">
             Explore

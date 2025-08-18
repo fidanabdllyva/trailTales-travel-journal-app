@@ -1,54 +1,41 @@
-import { useState } from "react"
-import { Input } from "@/components/ui/input"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Badge } from "@/components/ui/badge"
-import { Star, Heart, Users, Globe, MapPin } from "lucide-react"
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import type { TravelListType } from "@/types/TravelListType";
+import ExploreListCard from "@/components/client/ExploreListCard";
+import { useEffect, useState } from "react";
+import { getPublicTravelLists } from "@/api/requests/travelListService";
 
 const Explore = () => {
-  const [activeTab, setActiveTab] = useState("lists")
+  const [travelLists, setTravelLists] = useState<TravelListType[]>([]);
+  const [loading, setLoading] = useState(false);
 
-  const travelLists = [
-    {
-      id: 1,
-      title: "Hidden Gems of Southeast Asia",
-      description: "Off-the-beaten-path destinations that will take your breath away",
-      destinations: 15,
-      rating: 4.8,
-      likes: 234,
-      views: 1520,
-      tags: ["adventure", "culture", "budget"],
-    },
-    {
-      id: 2,
-      title: "European Christmas Markets Tour",
-      description: "The most magical Christmas markets across Germany, Austria, and Czech Republic",
-      destinations: 8,
-      rating: 4.9,
-      likes: 189,
-      views: 892,
-      tags: ["winter", "culture", "food"],
-    },
-    {
-      id: 3,
-      title: "Solo Female Travel: Safe & Amazing Destinations",
-      description: "Carefully curated destinations perfect for solo female travelers",
-      destinations: 20,
-      rating: 4.7,
-      likes: 456,
-      views: 2340,
-      tags: ["solo", "safety", "adventure"],
-    },
-  ]
+  useEffect(() => {
+    const fetchTravelLists = async () => {
+      setLoading(true);
+      try {
+        const response = await getPublicTravelLists();
+        setTravelLists(response?.data?.lists || []);
+        console.log(response.data);
+      } catch (error) {
+        console.error("Failed to fetch travel lists:", error);
+        setTravelLists([]); // fallback
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchTravelLists();
+  }, []);
+
 
   return (
     <div className="max-w-7xl mx-auto p-6">
       {/* Header */}
       <div className="text-center space-y-2 mb-8">
-        <h1 className="text-3xl font-bold">Explore Travel Inspiration</h1>
-        <p className="text-muted-foreground">
+        <h1 className="text-4xl font-bold">Explore Travel Inspiration</h1>
+        <p className="text-muted-foreground mt-3">
           Discover amazing destinations and read inspiring travel stories from our community
         </p>
       </div>
@@ -75,53 +62,26 @@ const Explore = () => {
       </div>
 
       {/* Tabs */}
-      <Tabs defaultValue="lists" value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="mb-6">
-          <TabsTrigger value="lists">Travel Lists</TabsTrigger>
-          <TabsTrigger value="journal">Journal Entries</TabsTrigger>
+      <Tabs defaultValue="lists">
+        <TabsList className="mb-6 mx-auto w-md">
+          <TabsTrigger value="lists" className="py-4">Travel Lists</TabsTrigger>
+          <TabsTrigger value="journal" className="py-4">Journal Entries</TabsTrigger>
         </TabsList>
 
         {/* Travel Lists */}
         <TabsContent value="lists">
-          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-            {travelLists.map((list) => (
-              <Card key={list.id} className="hover:shadow-lg transition rounded-2xl">
-                <CardHeader>
-                  <CardTitle className="text-lg">{list.title}</CardTitle>
-                  <p className="text-sm text-muted-foreground">{list.description}</p>
-                </CardHeader>
-                <CardContent>
-                  <div className="flex items-center text-sm text-muted-foreground mb-2">
-                    <MapPin className="w-4 h-4 mr-1" /> {list.destinations} destinations
-                  </div>
-                  <div className="flex flex-wrap gap-2">
-                    {list.tags.map((tag) => (
-                      <Badge key={tag} variant="secondary" className="text-xs">
-                        #{tag}
-                      </Badge>
-                    ))}
-                  </div>
-                </CardContent>
-                <CardFooter className="flex justify-between text-sm text-muted-foreground">
-                  <div className="flex items-center gap-1">
-                    <Star className="w-4 h-4 text-yellow-500" /> {list.rating}
-                  </div>
-                  <div className="flex items-center gap-1">
-                    <Heart className="w-4 h-4 text-red-500" /> {list.likes}
-                  </div>
-                  <div className="flex items-center gap-1">
-                    <Users className="w-4 h-4" /> {list.views}
-                  </div>
-                  <Badge variant="outline" className="ml-auto flex items-center gap-1">
-                    <Globe className="w-3 h-3" /> Public
-                  </Badge>
-                </CardFooter>
-              </Card>
-            ))}
-          </div>
+          {loading ? (
+            <div className="text-center py-12">Loading...</div>
+          ) : (
+            <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+              {travelLists.map((list) => (
+                <ExploreListCard key={list.id} list={list} />
+              ))}
+            </div>
+          )}
         </TabsContent>
 
-        {/* Journal Entries (placeholder) */}
+        {/* Journal Entries */}
         <TabsContent value="journal">
           <div className="text-center text-muted-foreground py-12">
             No journal entries yet.
@@ -129,7 +89,7 @@ const Explore = () => {
         </TabsContent>
       </Tabs>
     </div>
-  )
-}
+  );
+};
 
-export default Explore
+export default Explore;

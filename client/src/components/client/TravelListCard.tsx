@@ -1,9 +1,9 @@
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Progress } from "@/components/ui/progress"
-import { ClockPlus, Globe, Lock, Share2, Users } from "lucide-react"
-import type { TravelListType } from "@/types/TravelListType"
 import type { RootState } from "@/redux/store"
+import type { TravelListType } from "@/types/TravelListType"
+import { ClockPlus, Globe, Lock, Share2, Users } from "lucide-react"
 import { useSelector } from "react-redux"
 import { Link } from "react-router-dom"
 import { Button } from "../ui/button"
@@ -44,7 +44,7 @@ export default function TravelListCard({ list }: TravelListCardProps) {
   };
 
   return (
-    <Card className="overflow-hidden border hover:shadow-lg transition-all cursor-pointer">
+    <Card className="overflow-hidden border hover:shadow-lg transition-all">
       <div className="relative h-48 w-full overflow-hidden">
         {list.coverImage ? (
           <img
@@ -96,7 +96,7 @@ export default function TravelListCard({ list }: TravelListCardProps) {
         <div>
 
           <CardTitle className="text-base line-clamp-1">
-            <Link to={`/travel-list/${list.id}`} className="text-xl">{list.title}</Link>
+            <Link to={`/travel-list/${list.id}`} className="hover:underline transition-all text-xl">{list.title}</Link>
           </CardTitle>
           <CardDescription className="text-sm line-clamp-2">{list.description}</CardDescription>
         </div>
@@ -115,21 +115,29 @@ export default function TravelListCard({ list }: TravelListCardProps) {
           <Progress className="flex-1 max-w-[150px]" value={progress} />
 
         </div>
-        {list.tags?.length > 0 && (
-          <div className="flex flex-wrap gap-1">
-            {list.tags.map((tag, idx) => (
-              <Badge key={idx} variant="secondary" className="text-xs">
-                #{tag}
-              </Badge>
-            ))}
-          </div>
-        )}
+        <div>
+          {list.tags?.length > 0 && (
+            <div className="flex flex-wrap gap-1">
+              {list.tags.slice(0, 3).map((tag, idx) => (
+                <Badge key={idx} variant="secondary" className="text-xs">
+                  #{tag}
+                </Badge>
+              ))}
+              {list.tags.length > 3 && (
+                <Badge variant="secondary" className="text-xs">
+                  +{list.tags.length - 3}
+                </Badge>
+              )}
+            </div>
+          )}
+        </div>
+
       </CardContent>
 
       <CardFooter className="flex items-center pb-6 justify-between text-xs text-muted-foreground">
         {isOwn ? (
           <div className="flex items-center gap-1">
-            <Users size={14} /> {collaboratorCount} collaborator{collaboratorCount !== 1 ? "s" : ""}
+            <Users size={14} /> {collaboratorCount} collaborator{collaboratorCount > 1 ? "s" : ""}
           </div>
         ) : (
           <div className="flex items-center gap-2">
