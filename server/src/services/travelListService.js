@@ -99,12 +99,16 @@ const getUserOwnLists = async (userId) => {
 
 // Get collaborative lists
 const getUserCollaborativeLists = async (userId) => {
-    return await TravelListModel.find({ collaborators: userId })
+    console.log("Fetching collaborative lists for userId:", userId);
+    const lists = await TravelListModel.find({ collaborators: userId })
         .populate('owner', 'username fullName profileImage')
         .populate('collaborators', 'username fullName profileImage')
         .populate('destinations')
         .sort({ createdAt: -1 });
+
+    return lists;
 };
+
 
 // Get single list
 const getTravelList = async (id, userId) => {
@@ -217,7 +221,7 @@ const addCollaborator = async (listId, email, userId) => {
 
     // Send invitation email
     const owner = await UserModel.findById(userId);
-    const inviteLink = `${CLIENT_URL}/profile`;
+    const inviteLink = `${CLIENT_URL}/requests`;
     await sendCollaboratorInviteEmail(collaborator.email, collaborator.fullName, owner.fullName, list.title, inviteLink);
 
     return { success: true, message: "Invitation sent successfully" };

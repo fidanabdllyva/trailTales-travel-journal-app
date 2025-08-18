@@ -186,7 +186,7 @@ const sendCollaboratorInviteEmail = async (toEmail, toFullName, fromFullName, li
       <div style="font-family: 'Segoe UI', sans-serif; padding: 40px;">
         <h2>Hello ${toFullName},</h2>
         <p>${fromFullName} invited you to be a collaborator on their travel list <strong>"${listTitle}"</strong>.</p>
-        <p>Visit your profile page's "Requests" section to view this invitation and choose to accept or decline it.</p>
+        <p>Visit your Collaborator Requests page to view this invitation and choose to accept or decline it.</p>
         <a href="${inviteLink}" style="background-color: #06beb6; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px;">View Invitation</a>
         <p>If you don’t want to collaborate, you can ignore this email.</p>
       </div>
