@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { Bell, LogOut, Plus, Search, UserIcon } from "lucide-react";
+import { Bell, LogOut, Plus, Search, UserIcon, Users } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Link, NavLink, useNavigate } from "react-router-dom";
 import {
@@ -149,6 +149,13 @@ console.log(userData , "userData in header");
               <Link to="/profile" className="w-full px-4 py-2 flex items-center space-x-2">
                 <UserIcon className="w-4 h-4" />
                 <span>Profile</span>
+              </Link>
+            </DropdownMenuItem>
+
+            <DropdownMenuItem asChild>
+              <Link to="/requests" className="w-full px-4 py-2 flex items-center space-x-2">
+                <Users className="w-4 h-4" />
+                <span>Collaborator Requests</span>
               </Link>
             </DropdownMenuItem>
 
