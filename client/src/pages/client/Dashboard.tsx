@@ -9,7 +9,7 @@ import { MdOutlineWavingHand } from "react-icons/md";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import type { TravelListType } from "@/types/TravelListType";
-import { getUserTravelLists } from "@/api/requests/travelListService";
+import { getUserTravelLists, getUserCollaborativeLists } from "@/api/requests/travelListService";
 import TravelListCard from "@/components/client/TravelListCard";
 
 export default function Dashboard() {
@@ -19,7 +19,8 @@ export default function Dashboard() {
   const { token, isAuthenticated } = useSelector((s: RootState) => s.auth);
   const { data: userData, status: userStatus, error } = useSelector((s: RootState) => s.user);
 
-  const [lists, setLists] = useState<TravelListType[]>([]);
+  const [myLists, setMyLists] = useState<TravelListType[]>([]);
+  const [sharedLists, setSharedLists] = useState<TravelListType[]>([]);
   const [loading, setLoading] = useState(true);
   const [query, setQuery] = useState("");
 
@@ -33,24 +34,33 @@ export default function Dashboard() {
     }
   }, [token, isAuthenticated, userStatus, dispatch, navigate]);
 
-  // Fetch travel lists
-useEffect(() => {
-  getUserTravelLists()
-    .then((res) => {
-      console.log("API response:", res);
-      setLists(res.data ?? []); // ✅ use .data, not the whole response
-    })
-    .catch(() => console.error("Failed to load lists"))
-    .finally(() => setLoading(false));
-}, []);
+  // Fetch both lists
+  useEffect(() => {
+    Promise.all([getUserTravelLists(), getUserCollaborativeLists()])
+      .then(([ownRes, collabRes]) => {
+        console.log("Own lists response:", ownRes);
+        console.log("Collaborative lists response:", collabRes);
 
+        setMyLists(ownRes.data ?? []);
 
-  // Split lists
-  const myId = userData?.id;
-  const myLists = lists.filter((l) => l.owner?.id === myId);
-  const sharedLists = lists.filter(
-    (l) => l.owner?.id !== myId && l.collaborators?.some((u) => u.id === myId)
-  );
+        // Check if collaborative API returns invitations instead of full lists
+        if (Array.isArray(collabRes.data)) {
+          console.log("Collab raw items:", collabRes.data);
+
+          // If items have only travelList IDs, log them
+          const hasTravelListOnly = collabRes.data.every((c: any) => typeof c.travelList === "string");
+          console.log("Collab has only IDs?", hasTravelListOnly);
+
+          // If only IDs, you’ll need to fetch the full TravelList objects
+          setSharedLists(collabRes.data);
+        } else {
+          setSharedLists([]);
+        }
+      })
+      .catch((err) => console.error("Failed to load lists", err))
+      .finally(() => setLoading(false));
+  }, []);
+
 
   // Filter function
   const filterLists = (arr: TravelListType[]) =>
@@ -68,14 +78,15 @@ useEffect(() => {
 
   // Stats
   const stats = useMemo(() => {
-    const destinations = lists.flatMap((l) => l.destinations || []);
+    const allLists = [...myLists, ...sharedLists];
+    const destinations = allLists.flatMap((l) => l.destinations || []);
     return {
       total: destinations.length,
       completed: destinations.filter((d) => d.status === "completed").length,
-      collaborators: new Set(lists.flatMap((l) => l.collaborators?.map((u) => u.id) || [])).size,
-      thisYear: lists.filter((d) => new Date(d.createdAt).getFullYear() === new Date().getFullYear()).length,
+      collaborators: new Set(allLists.flatMap((l) => l.collaborators?.map((u) => u.id) || [])).size,
+      thisYear: allLists.filter((d) => new Date(d.createdAt).getFullYear() === new Date().getFullYear()).length,
     };
-  }, [lists]);
+  }, [myLists, sharedLists]);
 
   if (loading || userStatus === "loading") {
     return <div className="flex justify-center items-center min-h-screen">Loading...</div>;
@@ -121,7 +132,6 @@ useEffect(() => {
         ))}
       </div>
 
-
       {/* Search */}
       <div className="flex items-center justify-between mt-6">
         <div className="flex items-center gap-2 w-full border px-2 rounded-md bg-white shadow-sm">
@@ -134,7 +144,7 @@ useEffect(() => {
             className="w-full py-2 outline-none border-none"
           />
         </div>
-        <button className="ml-3 px-4 py-2 flex  items-center bg-white gap-2 border rounded-md hover:bg-gray-100">
+        <button className="ml-3 px-4 py-2 flex items-center bg-white gap-2 border rounded-md hover:bg-gray-100">
           <FiFilter /> Filter
         </button>
       </div>
@@ -142,7 +152,7 @@ useEffect(() => {
       {/* Lists */}
       <Tabs defaultValue="my" className="w-full mt-6">
         <TabsList>
-          <TabsTrigger value="my">My Lists  ({filteredMy.length})</TabsTrigger>
+          <TabsTrigger value="my">My Lists ({filteredMy.length})</TabsTrigger>
           <TabsTrigger value="shared">Shared with Me ({filteredShared.length})</TabsTrigger>
         </TabsList>
 
@@ -151,7 +161,6 @@ useEffect(() => {
             <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
               {filteredMy.map((list) => (
                 <TravelListCard key={list.id} list={list} />
-
               ))}
             </div>
           ) : (
@@ -164,7 +173,6 @@ useEffect(() => {
             <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
               {filteredShared.map((list) => (
                 <TravelListCard key={list.id} list={list} />
-
               ))}
             </div>
           ) : (

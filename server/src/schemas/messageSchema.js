@@ -1,23 +1,21 @@
-const mongoose = require('mongoose');
+import mongoose from "mongoose";
 const applyIdTransform = require("../utils/idTransform")
 
-const messageSchema = new mongoose.Schema({
-  sender: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: "User",
-    required: true,
+const messageSchema = new mongoose.Schema(
+  {
+    group: { type: mongoose.Schema.Types.ObjectId, ref: "Group", index: true, required: true },
+    author: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
+    body: {
+      text: String,
+      files: [{ url: String, name: String, size: Number }]
+    },
+    deliveredTo: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
+    readBy: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
+    clientId: { type: String, index: true },
   },
-  content: {
-    type: String,
-    required: true,
-  },
-  list: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: "TravelList",
-    required: true,
-  },
-},{ timestamps: true });
+  { timestamps: true }
+);
 
 applyIdTransform(messageSchema)
 
-module.exports = messageSchema;
+export default messageSchema;

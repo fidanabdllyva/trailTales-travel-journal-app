@@ -10,7 +10,7 @@ interface TravelListsResponse {
 }
 
 interface ApiResponse<T> {
-  success?: boolean; 
+  success?: boolean;
   message: string;
   data: T;
 }
@@ -50,6 +50,19 @@ export const getUserTravelLists = async (): Promise<
     return response.data as ApiResponse<TravelListType[]>;
   } catch (error) {
     console.error("Failed to fetch user travel lists:", error);
+    throw error;
+  }
+};
+
+// Collaborative lists
+export const getUserCollaborativeLists = async (): Promise<
+  ApiResponse<TravelListType[]>
+> => {
+  try {
+    const response = await instance.get(`${endpoints.list}/user/collaborative`);
+    return response.data as ApiResponse<TravelListType[]>;
+  } catch (error) {
+    console.error("Failed to fetch collaborative travel lists:", error);
     throw error;
   }
 };

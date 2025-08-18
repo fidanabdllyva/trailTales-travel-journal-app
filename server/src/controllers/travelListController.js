@@ -109,7 +109,7 @@ module.exports = {
     // Get lists the user collaborates on
     async getUserCollaborativeLists(req, res, next) {
         try {
-            const userId = req.user._id;
+            const userId = req.user.id;
             const lists = await travelListService.getUserCollaborativeLists(userId);
 
             res.status(200).json({

@@ -21,6 +21,10 @@ router.post('/',
 // Get user's travel lists
 router.get('/user', travelListController.getUserOwnLists);
 
+// Get collaborative lists
+router.get('/user/collaborative', travelListController.getUserCollaborativeLists);
+
+
 // Get a single travel list
 router.get('/:id', travelListController.getListById);
 

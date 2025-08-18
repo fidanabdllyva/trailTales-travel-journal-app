@@ -18,8 +18,8 @@ const LOCK_TIME = 10 * 60 * 1000;
 
 
 const getAll = async () => await UserModel.find()
-.populate('lists')
-.select("-password");
+  .populate('lists')
+  .select("-password");
 
 const getOne = async (id) => await UserModel.findById(id).select("-password");
 
@@ -249,7 +249,7 @@ const updateUser = async (userId, updateData) => {
         return obj;
       }, {});
 
-       if (filteredUpdates.username && filteredUpdates.username !== user.username) {
+    if (filteredUpdates.username && filteredUpdates.username !== user.username) {
       const existingUser = await UserModel.findOne({ username: filteredUpdates.username });
       if (existingUser) {
         throw new Error("Username already taken");
@@ -356,12 +356,18 @@ const getCollaboratorRequests = async (userId) => {
       path: "collaboratorRequests.travelList",
       select: "title owner",
       populate: { path: "owner", select: "username fullName profileImage" }
+    })
+    .populate({
+      path: "collaboratorRequests.fromUser", // 👈 populate fromUser too
+      select: "username fullName profileImage email"
     });
 
   if (!user) throw new Error("User not found");
 
   // Filter only pending requests
-  const pendingRequests = user.collaboratorRequests.filter(req => req.status === "pending");
+  const pendingRequests = user.collaboratorRequests.filter(
+    (req) => req.status === "pending"
+  );
 
   return pendingRequests;
 };
