@@ -31,10 +31,10 @@ export const createTravelList = async (
 // Public lists (paginated)
 export const getPublicTravelLists = async (
   params?: { page?: number; limit?: number; tag?: string }
-): Promise<ApiResponse<TravelListsResponse>> => {
+) => {
   try {
     const response = await instance.get(`${endpoints.list}/public`, { params });
-    return response.data as ApiResponse<TravelListsResponse>;
+    return response.data;
   } catch (error) {
     console.error("Failed to fetch public travel lists:", error);
     throw error;

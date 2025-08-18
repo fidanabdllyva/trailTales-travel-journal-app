@@ -79,7 +79,9 @@ const MyLists = () => {
           {/* Right: Content */}
           <div className="flex flex-col justify-between p-6 flex-1 h-full">
             <div>
-              <h3 className="text-xl font-semibold mb-2">{list.title}</h3>
+             <Link className="text-2xl cursor-pointer hover:underline transition-all font-semibold " to={`/travel-list/${list.id}`}>
+             {list.title}
+             </Link>
               <p className="text-sm text-muted-foreground line-clamp-3">
                 {list.description}
               </p>
