@@ -23,17 +23,18 @@ import AuthCallback from "@/pages/auth/AuthCallback";
 import CreateList from "@/pages/client/CreateList";
 import ProtectedRoute from "@/components/client/ProtectedRoute";
 import RedirectIfAuth from "@/components/auth/RedirectIfAuth";
+import CollaboratorRequests from "@/pages/client/CollaboratorRequests";
 
 const ROUTES = [
     //Auth Routes
     {
         path: "/",
         element:
-        (
-            <RedirectIfAuth>
-                <AuthLayout />
-            </RedirectIfAuth>
-        ),
+            (
+                <RedirectIfAuth>
+                    <AuthLayout />
+                </RedirectIfAuth>
+            ),
         children: [
             {
                 index: true,
@@ -98,6 +99,10 @@ const ROUTES = [
             {
                 path: "journal/:id",
                 element: <JournalDetail />
+            },
+            {
+                path: "requests",
+                element: <CollaboratorRequests />
             }
         ]
     },

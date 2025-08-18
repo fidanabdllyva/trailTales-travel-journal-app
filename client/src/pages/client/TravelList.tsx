@@ -13,6 +13,9 @@ import {
 import { FaRegComment, FaRegHeart } from "react-icons/fa";
 import type { TravelListType } from "@/types/TravelListType";
 import { getTravelList } from "@/api/requests/travelListService";
+import TravelListMembers from "@/components/client/TravelListMembers";
+import { Dialog, DialogContent, DialogTrigger } from "@radix-ui/react-dialog";
+import TravelLIstChat from "@/components/client/TravelLIstChat";
 
 // Mock formatDate function
 const formatDate = (date?: string | Date) => {
@@ -20,35 +23,6 @@ const formatDate = (date?: string | Date) => {
   return new Date(date).toLocaleDateString();
 };
 
-// Types
-type Member = {
-  id: string;
-  fullName: string;
-  email: string;
-  avatarUrl?: string;
-};
-
-// Members component
-function Members({ members }: { members: Member[] }) {
-  return (
-    <div className="flex gap-3 mt-4">
-      {members.map((m) => (
-        <div key={m.id} className="flex flex-col items-center text-sm">
-          <div className="w-10 h-10 rounded-full overflow-hidden bg-gray-200">
-            {m.avatarUrl && (
-              <img
-                src={m.avatarUrl}
-                alt={m.fullName}
-                className="w-full h-full object-cover"
-              />
-            )}
-          </div>
-          <span>{m.fullName}</span>
-        </div>
-      ))}
-    </div>
-  );
-}
 
 // Simple stat card
 function StatCard({
@@ -146,9 +120,10 @@ export default function TravelListDetail() {
 
           {/* Actions */}
           <div className="mt-4 flex gap-2 self-end">
-            <Button variant="secondary" className="bg-white/90 text-gray-900">
-              <MessageSquare className="mr-2 h-4 w-4" /> Chat
-            </Button>
+
+
+            <TravelLIstChat />
+
             <Button variant="secondary" className="bg-white/90 text-gray-900">
               <Share2 className="mr-2 h-4 w-4" /> Share
             </Button>
@@ -187,7 +162,7 @@ export default function TravelListDetail() {
 
 
       {/* Members */}
-      <Members members={list.collaborators as any} />
+      <TravelListMembers members={list.collaborators as any} listId={list.id} />
 
       {/* Tabs */}
       <Tabs
