@@ -5,7 +5,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
-import { Plus, Lock, Upload } from "lucide-react";
+import { Plus, Lock, Upload, Globe } from "lucide-react";
 import { Separator } from "@radix-ui/react-dropdown-menu";
 import DestinationForm from "@/components/client/DestinationForm";
 import { useFormik, FieldArray, FormikProvider } from "formik";
@@ -225,6 +225,29 @@ export default function CreateList() {
                 )}
               </div>
 
+              {/* Public / Private Toggle */}
+              <div className="flex items-center justify-between rounded-lg border p-4">
+                <div className="space-y-1">
+                  <Label htmlFor="isPublic" className="text-base font-medium">
+                    Visibility
+                  </Label>
+                  <p className="text-sm text-muted-foreground">
+                    Choose whether your travel list will be visible to others
+                  </p>
+                </div>
+                <div className="flex items-center gap-2">
+                  {!formik.values.isPublic ? (<Lock className="h-4 w-4"/>) : (<Globe className="h-4 w-4"/>)}
+                  <Switch
+                    id="isPublic"
+                    name="isPublic"
+                    checked={formik.values.isPublic}
+                    onCheckedChange={(val) => formik.setFieldValue("isPublic", val)}
+                  />
+                  <span className="text-sm font-medium w-12">
+                    {formik.values.isPublic ? "Public" : "Private"}
+                  </span>
+                </div>
+              </div>
 
               {/* Destinations */}
               <FieldArray name="destinations">

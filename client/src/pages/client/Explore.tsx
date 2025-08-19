@@ -6,18 +6,27 @@ import type { TravelListType } from "@/types/TravelListType";
 import ExploreListCard from "@/components/client/ExploreListCard";
 import { useEffect, useState } from "react";
 import { getPublicTravelLists } from "@/api/requests/travelListService";
+import { useSelector } from "react-redux";
+import type { RootState } from "@/redux/store";
 
 const Explore = () => {
   const [travelLists, setTravelLists] = useState<TravelListType[]>([]);
   const [loading, setLoading] = useState(false);
+  const currentUserId=useSelector((s:RootState)=>s.user.data?.id)
 
   useEffect(() => {
     const fetchTravelLists = async () => {
       setLoading(true);
       try {
         const response = await getPublicTravelLists();
-        setTravelLists(response?.data?.lists || []);
-        console.log(response.data);
+        const allLists = response?.data?.lists || [];
+
+        // 👇 filter out current user's lists
+        const filteredLists = allLists.filter(
+          (list: TravelListType) => list.owner?.id !== currentUserId
+        );
+
+        setTravelLists(filteredLists);
       } catch (error) {
         console.error("Failed to fetch travel lists:", error);
         setTravelLists([]); // fallback
@@ -27,7 +36,7 @@ const Explore = () => {
     };
 
     fetchTravelLists();
-  }, []);
+  }, [currentUserId]);
 
 
   return (
@@ -44,7 +53,7 @@ const Explore = () => {
       <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mb-6">
         <Input
           placeholder="Search destinations, lists, or stories..."
-          className="w-full sm:w-1/2"
+          className="w-full bg-white"
         />
         <div className="flex items-center gap-3">
           <DropdownMenu>
