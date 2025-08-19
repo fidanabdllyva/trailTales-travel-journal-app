@@ -9,7 +9,6 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog"
-import { Input } from "@/components/ui/input"
 import {
   Command,
   CommandGroup,
@@ -20,6 +19,9 @@ import {
 import { getAllUsers } from "@/api/requests/userService"
 import type { User } from "@/types/UserType"
 import { addCollaborator } from "@/api/requests/travelListService"
+import { Badge } from "@/components/ui/badge"
+import { useSelector } from "react-redux"
+import type { RootState } from "@/redux/store"
 
 interface Member {
   id: string
@@ -27,11 +29,21 @@ interface Member {
   profileImage?: string
 }
 
-const TravelListMembers = ({ members, listId }: { members: Member[]; listId: string }) => {
+interface TravelListMembersProps {
+  members: Member[]
+  listId: string
+  owner: User
+}
+
+const TravelListMembers = ({ members, listId, owner }: TravelListMembersProps) => {
   const [open, setOpen] = useState(false)
   const [users, setUsers] = useState<User[]>([])
   const [search, setSearch] = useState("")
   const [loading, setLoading] = useState(false)
+  const currentUserId = useSelector((s:RootState)=>s.user.data?.id)
+
+  // include owner in members
+  const teamMembers = [owner, ...members]
 
   useEffect(() => {
     if (open) {
@@ -58,11 +70,15 @@ const TravelListMembers = ({ members, listId }: { members: Member[]; listId: str
     }
   }
 
+  // search filter
   const filtered = users.filter(
     (u) =>
       u.fullName.toLowerCase().includes(search.toLowerCase()) ||
       u.email.toLowerCase().includes(search.toLowerCase())
   )
+
+  // list of ids who are already collaborators or owner
+  const disabledIds = new Set([...teamMembers.map((m) => m.id), currentUserId])
 
   return (
     <Card className="p-4">
@@ -85,28 +101,34 @@ const TravelListMembers = ({ members, listId }: { members: Member[]; listId: str
               />
               <CommandList>
                 <CommandGroup heading="Users">
-                  {filtered.map((u) => (
-                    <CommandItem
-                      key={u.id}
-                      onSelect={() => handleInvite(u.email)}
-                      className="flex items-center justify-between"
-                    >
-                      <div className="flex items-center gap-2">
-                        <Avatar className="w-6 h-6">
-                          <AvatarImage src={u.profileImage} />
-                          <AvatarFallback>
-                            {u.fullName
-                              .split(" ")
-                              .map((n) => n[0])
-                              .join("")
-                              .toUpperCase()}
-                          </AvatarFallback>
-                        </Avatar>
-                        <span>{u.fullName}</span>
-                      </div>
-                      <span className="text-xs text-muted-foreground">{u.email}</span>
-                    </CommandItem>
-                  ))}
+                  {filtered.map((u) => {
+                    if(!u.id) return
+                    const disabled = disabledIds.has(u.id)
+                    return (
+                      <CommandItem
+                        key={u.id}
+                        onSelect={() => !disabled && handleInvite(u.email)}
+                        className={`flex items-center justify-between ${
+                          disabled ? "opacity-50 pointer-events-none" : ""
+                        }`}
+                      >
+                        <div className="flex items-center gap-2">
+                          <Avatar className="w-6 h-6">
+                            <AvatarImage src={u.profileImage} />
+                            <AvatarFallback>
+                              {u.fullName
+                                .split(" ")
+                                .map((n) => n[0])
+                                .join("")
+                                .toUpperCase()}
+                            </AvatarFallback>
+                          </Avatar>
+                          <span>{u.fullName}</span>
+                        </div>
+                        <span className="text-xs text-muted-foreground">{u.email}</span>
+                      </CommandItem>
+                    )
+                  })}
                 </CommandGroup>
               </CommandList>
             </Command>
@@ -115,7 +137,7 @@ const TravelListMembers = ({ members, listId }: { members: Member[]; listId: str
       </div>
 
       <CardContent className="flex flex-wrap gap-6">
-        {members.map((m) => (
+        {teamMembers.map((m) => (
           <div
             key={m.id}
             className="flex flex-col items-center text-center w-24"
@@ -131,6 +153,11 @@ const TravelListMembers = ({ members, listId }: { members: Member[]; listId: str
               </AvatarFallback>
             </Avatar>
             <span className="text-sm font-medium">{m.fullName}</span>
+            {m.id === owner.id && (
+              <Badge variant="secondary" className="mt-1 text-[10px]">
+                Owner
+              </Badge>
+            )}
           </div>
         ))}
       </CardContent>

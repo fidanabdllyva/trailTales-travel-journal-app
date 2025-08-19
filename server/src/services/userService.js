@@ -354,7 +354,7 @@ const getCollaboratorRequests = async (userId) => {
   const user = await UserModel.findById(userId)
     .populate({
       path: "collaboratorRequests.travelList",
-      select: "title owner",
+      select: "title owner isPublic",
       populate: { path: "owner", select: "username fullName profileImage" }
     })
     .populate({

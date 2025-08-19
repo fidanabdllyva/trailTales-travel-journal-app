@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useParams, Link } from "react-router-dom";
+import { useParams, Link, useNavigate } from "react-router-dom";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -51,6 +51,7 @@ export default function TravelListDetail() {
   const [list, setList] = useState<TravelListType | null>(null);
   const [activeTab, setActiveTab] = useState("destinations");
   const [loading, setLoading] = useState(true);
+    const navigate = useNavigate();
 
   useEffect(() => {
     if (!id) return;
@@ -84,12 +85,12 @@ export default function TravelListDetail() {
     <div className="max-w-6xl mx-auto p-4">
       {/* Back */}
       <div className="mb-4 text-sm">
-        <Link
-          to={"/dashboard"}
-          className="inline-flex items-center gap-2 text-muted-foreground hover:text-foreground"
+        <button
+          onClick={() => navigate(-1)}
+          className="inline-flex cursor-pointer items-center gap-2 text-muted-foreground hover:text-foreground"
         >
-          ← Back to Dashboard
-        </Link>
+          ← Back
+        </button>
       </div>
 
       {/* Hero */}
@@ -162,7 +163,7 @@ export default function TravelListDetail() {
 
 
       {/* Members */}
-      <TravelListMembers members={list.collaborators as any} listId={list.id} />
+      <TravelListMembers members={list.collaborators as any} owner={list.owner} listId={list.id} />
 
       {/* Tabs */}
       <Tabs

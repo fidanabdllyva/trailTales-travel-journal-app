@@ -3,13 +3,14 @@ import { Card, CardContent, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { MapPin} from "lucide-react";
 import type { TravelListType } from "@/types/TravelListType";
+import { Link } from "react-router-dom";
 
 interface ExploreListCardProps {
     list: TravelListType;
 }
 
 const ExploreListCard: React.FC<ExploreListCardProps> = ({ list }) => {
-    const { title, coverImage, isPublic, description, destinations, tags, owner, createdAt } = list;
+    const { id,title, coverImage, isPublic, description, destinations, tags, owner, createdAt } = list;
 
 
     return (
@@ -29,7 +30,10 @@ const ExploreListCard: React.FC<ExploreListCardProps> = ({ list }) => {
 
 
                 {/* Title & Description */}
+                <Link to={`/travel-list/${id}`}>
+                
                 <CardTitle className="text-lg font-semibold">{title}</CardTitle>
+                </Link>
                 <p className="text-sm text-gray-600">{description}</p>
 
                 {/* Destinations */}

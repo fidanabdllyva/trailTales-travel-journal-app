@@ -22,12 +22,6 @@ const travelListSchema = new mongoose.Schema(
     destinations: {
       type: [mongoose.Schema.Types.ObjectId],
       ref: "Destination",
-      validate: {
-        validator: function (v) {
-          return v && v.length > 0; 
-        },
-        message: "At least one destination is required",
-      },
       required: true,
     },
     chat: { type: mongoose.Schema.Types.ObjectId, ref: "Chat", default: null },
