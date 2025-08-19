@@ -14,8 +14,8 @@ const MyLists = () => {
   useEffect(() => {
     const fetchLists = async () => {
       try {
-        const res = await getUserTravelLists(); 
-        setLists(res.data ?? []);              
+        const res = await getUserTravelLists();
+        setLists(res.data ?? []);
       } catch (error) {
         console.error("Error fetching lists:", error);
       } finally {
@@ -79,9 +79,12 @@ const MyLists = () => {
           {/* Right: Content */}
           <div className="flex flex-col justify-between p-6 flex-1 h-full">
             <div>
-             <Link className="text-2xl cursor-pointer hover:underline transition-all font-semibold " to={`/travel-list/${list.id}`}>
-             {list.title}
-             </Link>
+              <div className="flex items-center gap-3">
+                <Link className="text-2xl cursor-pointer hover:underline transition-all font-semibold " to={`/travel-list/${list.id}`}>
+                  {list.title}
+                </Link>
+                <span>• {list.isPublic ? "Public" : "Private"}</span>
+              </div>
               <p className="text-sm text-muted-foreground line-clamp-3">
                 {list.description}
               </p>

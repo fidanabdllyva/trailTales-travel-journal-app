@@ -1,11 +1,11 @@
 import type { TravelListType } from "./TravelListType";
 
 export interface User {
-  id?: string;
+  id: string;
   username: string;
   email: string;
   password?: string;
-  profileImage: string ;
+  profileImage: string;
   public_id: string;
   premium: boolean;
   lists?: TravelListType[];
@@ -26,5 +26,13 @@ export interface User {
     instagram?: string;
     linkedin?: string;
     x?: string;
-  }
+  };
+  collaboratorRequests: [
+    {
+      travelList: TravelListType | string,
+      fromUser: User | string,
+      createdAt: Date | string,
+      status: "pending" | "accepted" | "rejected";
+    }
+  ]
 }

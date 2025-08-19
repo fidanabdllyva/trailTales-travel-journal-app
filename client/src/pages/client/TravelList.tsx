@@ -51,7 +51,7 @@ export default function TravelListDetail() {
   const [list, setList] = useState<TravelListType | null>(null);
   const [activeTab, setActiveTab] = useState("destinations");
   const [loading, setLoading] = useState(true);
-    const navigate = useNavigate();
+  const navigate = useNavigate();
 
   useEffect(() => {
     if (!id) return;
@@ -76,6 +76,26 @@ export default function TravelListDetail() {
     return <div className="p-6 text-center text-red-500">Travel list not found.</div>;
   }
 
+  const handleShare = async () => {
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: document.title,
+          url: window.location.href,
+        });
+      } catch (error) {
+        console.error("Share failed:", error);
+      }
+    } else {
+      // Fallback: copy link to clipboard
+      try {
+        await navigator.clipboard.writeText(window.location.href);
+        alert("Link copied to clipboard");
+      } catch (err) {
+        console.error("Copy failed:", err);
+      }
+    }
+  };
   // Public photos from journals
   const publicPhotos =
     (list as any).journals?.filter((j: any) => j.public && j.photos.length > 0)
@@ -125,7 +145,7 @@ export default function TravelListDetail() {
 
             <TravelLIstChat />
 
-            <Button variant="secondary" className="bg-white/90 text-gray-900">
+            <Button variant="secondary" className="bg-white/90 text-gray-900" onClick={handleShare}>
               <Share2 className="mr-2 h-4 w-4" /> Share
             </Button>
             <Button variant="secondary" className="bg-white/90 text-gray-900">
@@ -163,7 +183,7 @@ export default function TravelListDetail() {
 
 
       {/* Members */}
-      <TravelListMembers members={list.collaborators as any} owner={list.owner} listId={list.id} />
+      <TravelListMembers members={list.collaborators as any} list={list} />
 
       {/* Tabs */}
       <Tabs

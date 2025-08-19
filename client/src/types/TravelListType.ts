@@ -1,4 +1,4 @@
-import type { DestinationType } from './DestinationType';
+import type { DestinationType, NewDestinationInput } from './DestinationType';
 import type { User } from './UserType';
 
 export interface TravelListType {
@@ -15,4 +15,13 @@ export interface TravelListType {
     chat?: string;
     createdAt: Date;
     updatedAt: Date;
+}
+
+  export interface CreateListFormValues {
+  title: string;
+  description: string;
+  tags: string[];
+  isPublic: boolean;
+  coverImage: File | null;
+  destinations: NewDestinationInput[];
 }

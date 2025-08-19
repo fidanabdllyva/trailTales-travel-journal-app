@@ -247,7 +247,7 @@ const removeCollaborator = async (listId, collaboratorId, userId) => {
 
         // Send removal email
         const owner = await UserModel.findById(userId);
-        await sendCollaboratorRemovedEmail(collaborator.email, collaborator.fullName, list.title, owner.fullName);
+        await sendCollaboratorRemovedEmail(collaborator.email, collaborator.fullName, list.title, owner.fullName,owner.email);
     }
 
     // Return populated list

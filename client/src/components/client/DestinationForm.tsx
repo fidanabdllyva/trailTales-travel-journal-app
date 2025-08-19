@@ -4,16 +4,14 @@ import { Button } from "@/components/ui/button";
 import { Trash } from "lucide-react";
 import { Textarea } from "../ui/textarea";
 import { getIn, type FormikProps } from "formik";
-import type { DestinationType } from "@/types/DestinationType";
 import mockCountries from "@/data/mockLocation";
+import type { CreateListFormValues } from "@/types/TravelListType";
 
 interface DestinationFormProps {
   name: string;
   index: number;
   onRemove: (index: number) => void;
-  formik: FormikProps<{
-    destinations: (DestinationType & { image?: File | null; rating?: number })[];
-  }>;
+  formik: FormikProps<CreateListFormValues>
 }
 
 export default function DestinationForm({ name, index, onRemove, formik }: DestinationFormProps) {

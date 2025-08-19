@@ -11,6 +11,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import type { TravelListType } from "@/types/TravelListType";
 import { getUserTravelLists, getUserCollaborativeLists } from "@/api/requests/travelListService";
 import TravelListCard from "@/components/client/TravelListCard";
+import LoadingSpinner from "@/components/common/LoadingSpinner";
 
 export default function Dashboard() {
   const dispatch = useDispatch();
@@ -89,7 +90,7 @@ export default function Dashboard() {
   }, [myLists, sharedLists]);
 
   if (loading || userStatus === "loading") {
-    return <div className="flex justify-center items-center min-h-screen">Loading...</div>;
+    return <LoadingSpinner/>;
   }
 
   if (error) {

@@ -2,12 +2,6 @@ import type { TravelListType } from "@/types/TravelListType";
 import instance from "../instance";
 import { endpoints } from "../constants";
 
-interface TravelListsResponse {
-  lists: TravelListType[];
-  totalPages: number;
-  currentPage: number;
-  total: number;
-}
 
 interface ApiResponse<T> {
   success?: boolean;
@@ -18,10 +12,10 @@ interface ApiResponse<T> {
 // Create
 export const createTravelList = async (
   formData: FormData
-): Promise<ApiResponse<TravelListType>> => {
+) => {
   try {
     const response = await instance.post(endpoints.list, formData);
-    return response.data as ApiResponse<TravelListType>;
+    return response.data;
   } catch (error) {
     console.error("Failed to create travel list:", error);
     throw error;
@@ -128,16 +122,15 @@ export const addCollaborator = async (
 export const removeCollaborator = async (
   listId: string,
   collaboratorId: string
-): Promise<ApiResponse<TravelListType>> => {
+) => {
   try {
     const response = await instance.delete(
       `${endpoints.list}/${listId}/collaborators/${collaboratorId}`
     );
-    return response.data as ApiResponse<TravelListType>;
-  } catch (error) {
+    return response.data;
+  } catch (error: any) {
     console.error(
-      `Failed to remove collaborator ${collaboratorId} from list ${listId}:`,
-      error
+      error.message
     );
     throw error;
   }
