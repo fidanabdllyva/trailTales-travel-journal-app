@@ -10,10 +10,24 @@ export interface DestinationType {
     dateVisited: Date | null | string;
     status: 'wishlist' | 'planned' | 'completed' | 'cancelled';
     notes: string;
-    image: string;
     public_id: string;
     list: TravelListType;
     createdAt: Date;
     updatedAt: Date;
-    rating:number
+    rating: number | null
+    listId?: string;
+    image:File | string | null
+}
+
+
+export interface NewDestinationInput {
+  location: { country: string; city: string };
+  datePlanned: string; 
+  dateVisited: string;
+  status: "wishlist" | "planned" | "completed" | "cancelled";
+  notes: string;
+  image: File | null;
+  public_id?: string;
+  listId?: string;
+  rating: number | null;
 }

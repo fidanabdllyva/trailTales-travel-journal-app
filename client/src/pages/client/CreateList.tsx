@@ -1,4 +1,4 @@
-import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
+import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -10,36 +10,36 @@ import { Separator } from "@radix-ui/react-dropdown-menu";
 import DestinationForm from "@/components/client/DestinationForm";
 import { useFormik, FieldArray, FormikProvider } from "formik";
 import { useState } from "react";
-import { createTravelList, getTravelList } from "@/api/requests/travelListService";
+import { createTravelList } from "@/api/requests/travelListService";
 import { createDestination } from "@/api/requests/destinationService";
-import type { DestinationType } from "@/types/DestinationType";
 import { travelListValidationSchema } from "@/validations/travelListValidationSchema";
 import { useNavigate } from "react-router";
+import type { CreateListFormValues } from "@/types/TravelListType";
 
 export default function CreateList() {
   const [tagInput, setTagInput] = useState("");
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const navigate = useNavigate()
 
-  const formik = useFormik({
+ const formik = useFormik<CreateListFormValues>({
     initialValues: {
       title: "",
       description: "",
-      tags: [] as string[],
+      tags: [],
       isPublic: true,
-      coverImage: null as File | null,
+      coverImage: null,
       destinations: [
         {
           location: { country: "", city: "" },
+          status: "wishlist",
           datePlanned: "",
           dateVisited: "",
-          status: "wishlist",
           notes: "",
           image: null,
           public_id: "",
           listId: "",
-          rating: null
-        }
+          rating: null,
+        },
       ],
     },
     validationSchema: travelListValidationSchema,
@@ -236,7 +236,7 @@ export default function CreateList() {
                   </p>
                 </div>
                 <div className="flex items-center gap-2">
-                  {!formik.values.isPublic ? (<Lock className="h-4 w-4"/>) : (<Globe className="h-4 w-4"/>)}
+                  {!formik.values.isPublic ? (<Lock className="h-4 w-4" />) : (<Globe className="h-4 w-4" />)}
                   <Switch
                     id="isPublic"
                     name="isPublic"
@@ -258,7 +258,7 @@ export default function CreateList() {
                         key={index}
                         name={`destinations[${index}]`}
                         index={index}
-                        formik={formik} // pass formik to DestinationForm to show errors
+                        formik={formik}
                         onRemove={(i) => formik.setFieldValue("destinations", formik.values.destinations.filter((_, idx) => idx !== i))}
                       />
                     ))}

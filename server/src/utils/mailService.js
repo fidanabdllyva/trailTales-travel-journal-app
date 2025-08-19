@@ -197,7 +197,7 @@ const sendCollaboratorInviteEmail = async (toEmail, toFullName, fromFullName, li
   }
 };
 
-const sendCollaboratorRemovedEmail = async (toEmail, toFullName, listTitle, removedBy) => {
+const sendCollaboratorRemovedEmail = async (toEmail, toFullName, listTitle, removedBy,contactTo) => {
   try {
     await transporter.sendMail({
       from: `"TrailTales" <${process.env.GMAIL_USER}>`,
@@ -207,7 +207,7 @@ const sendCollaboratorRemovedEmail = async (toEmail, toFullName, listTitle, remo
       <div style="font-family: 'Segoe UI', sans-serif; padding: 40px;">
         <h2>Hello ${toFullName},</h2>
         <p>You have been removed as a collaborator from the travel list <strong>"${listTitle}"</strong> by ${removedBy}.</p>
-        <p>If you think this was a mistake, please contact the owner.</p>
+        <p>If you think this was a mistake, please contact the owner -> ${contactTo}</p>
       </div>
       `,
     });

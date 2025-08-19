@@ -41,6 +41,6 @@ router.delete('/:id', travelListController.deleteList);
 router.post('/:id/collaborators', travelListController.addCollaboratorToList);
 
 // Remove a collaborator
-router.delete('/:id/collaborators', travelListController.removeCollaboratorFromList);
+router.delete('/:id/collaborators/:collaboratorId', travelListController.removeCollaboratorFromList);
 
 module.exports = router;
