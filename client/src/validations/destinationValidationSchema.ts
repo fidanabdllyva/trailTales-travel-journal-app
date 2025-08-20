@@ -42,5 +42,5 @@ export const editDestinationValidationSchema = Yup.object({
     }
   ),
   notes: Yup.string().trim(),
-  image: Yup.mixed<File>().nullable(), // optional, old image is kept if not changed
+  image: Yup.mixed<File>().nullable(), 
 });

@@ -10,16 +10,23 @@ import type { DestinationType } from "@/types/DestinationType";
 import moment from "moment";
 import { deleteDestination } from "@/api/requests/destinationService";
 import DestinationEdit from "./DestinationEdit";
+import { useSelector } from "react-redux";
+import type { RootState } from "@/redux/store";
 
 interface TravelListDestinationProp {
     destination: DestinationType;
+    ownerId: string;
+    collaborators: { id: string }[];
     onDeleted?: (id: string) => void;
     onUpdated?: (updated: DestinationType) => void;
 }
 
-const TravelListDestinations = ({ destination: d, onDeleted, onUpdated }: TravelListDestinationProp) => {
+const TravelListDestinations = ({ destination: d, onDeleted, onUpdated, ownerId, collaborators, }: TravelListDestinationProp) => {
     const [isDeleting, setIsDeleting] = useState(false);
     const [openDelete, setOpenDelete] = useState(false);
+    const currentUserId = useSelector((s: RootState) => s.user.data?.id)
+
+    const canEdit = currentUserId === ownerId || collaborators.some(c => c.id === currentUserId);
 
     const handleDelete = async () => {
         setIsDeleting(true);
@@ -99,32 +106,45 @@ const TravelListDestinations = ({ destination: d, onDeleted, onUpdated }: Travel
                 </div>
             </div>
 
-            {/* Right: Actions */}
-            <div className="flex flex-col  gap-2 p-4">
-                <div className="flex gap-2">
-                    <DestinationEdit destination={d} onUpdated={onUpdated} />
 
-                    <Dialog open={openDelete} onOpenChange={setOpenDelete}>
-                        <DialogTrigger asChild>
-                            <Button variant="destructive">
-                                <Trash />
-                            </Button>
-                        </DialogTrigger>
-                        <DialogContent className="sm:max-w-[400px]">
-                            <DialogHeader>
-                                <DialogTitle>Delete Destination</DialogTitle>
-                            </DialogHeader>
-                            <p>Are you sure you want to delete {d.location.city}, {d.location.country}?</p>
-                            <DialogFooter className="flex justify-end gap-2">
-                                <Button variant="outline" onClick={() => setOpenDelete(false)} disabled={isDeleting}>Cancel</Button>
-                                <Button variant="destructive" onClick={handleDelete} disabled={isDeleting}>
-                                    {isDeleting ? "Deleting..." : "Delete"}
+            {/* Right: Actions */}
+            {canEdit && (
+                <div className="flex flex-col gap-2 p-4">
+                    <div className="flex gap-2">
+                        <DestinationEdit destination={d} onUpdated={onUpdated} />
+
+                        <Dialog open={openDelete} onOpenChange={setOpenDelete}>
+                            <DialogTrigger asChild>
+                                <Button variant="destructive">
+                                    <Trash />
                                 </Button>
-                            </DialogFooter>
-                        </DialogContent>
-                    </Dialog>
+                            </DialogTrigger>
+                            <DialogContent className="sm:max-w-[400px]">
+                                <DialogHeader>
+                                    <DialogTitle>Delete Destination</DialogTitle>
+                                </DialogHeader>
+                                <p>Are you sure you want to delete {d.location.city}, {d.location.country}?</p>
+                                <DialogFooter className="flex justify-end gap-2">
+                                    <Button
+                                        variant="outline"
+                                        onClick={() => setOpenDelete(false)}
+                                        disabled={isDeleting}
+                                    >
+                                        Cancel
+                                    </Button>
+                                    <Button
+                                        variant="destructive"
+                                        onClick={handleDelete}
+                                        disabled={isDeleting}
+                                    >
+                                        {isDeleting ? "Deleting..." : "Delete"}
+                                    </Button>
+                                </DialogFooter>
+                            </DialogContent>
+                        </Dialog>
+                    </div>
                 </div>
-            </div>
+            )}
         </Card>
     );
 };
