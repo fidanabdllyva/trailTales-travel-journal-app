@@ -73,11 +73,10 @@ export const destinationValidationSchema = Yup.object({
 // Travel List schema
 export const travelListValidationSchema = Yup.object().shape({
   title: Yup.string().required("Title is required").trim(),
-  description: Yup.string().required("Description is required").trim(),
-  tags: Yup.array()
-    .of(Yup.string().trim())
-    .min(1, "At least one tag is required")
-    .required("Tags are required"),
+  description: Yup.string().max(100, "Description cannot exceed 100 characters").trim(),
+  tags: Yup.array().of(Yup.string()
+    .matches(/^[a-z0-9]+$/, "Tags must be lowercase, alphanumeric, no spaces or special characters")
+    .required("Tag cannot be empty")).min(1, "At least one tag is required"),
   isPublic: Yup.boolean(),
   coverImage: Yup.mixed<File>()
     .required("Cover image is required")
@@ -93,4 +92,16 @@ export const travelListValidationSchema = Yup.object().shape({
     .of(destinationValidationSchema)
     .min(1, "At least one destination is required")
     .required("Destinations are required"),
+});
+
+
+export const editListValidationSchema = Yup.object({
+  title: Yup.string().required("Title is required"),
+  description: Yup.string().max(100, "Description cannot exceed 100 characters").trim(),
+  tags: Yup.array().of(Yup.string()
+    .matches(/^[a-z0-9]+$/, "Tags must be lowercase, alphanumeric, no spaces or special characters")
+    .required("Tag cannot be empty")).min(1, "At least one tag is required"),
+  coverImage: Yup.mixed<File>()
+    .required("Cover image is required")
+
 });

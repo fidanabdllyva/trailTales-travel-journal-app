@@ -165,6 +165,6 @@ function isNew(createdAt: string | Date) {
   const createdTime = new Date(createdAt).getTime();
   if (isNaN(createdTime)) return false;
   const daysOld = (Date.now() - createdTime) / (1000 * 60 * 60 * 24);
-  return daysOld <= 2;
+  return daysOld <= 1;
 }
 

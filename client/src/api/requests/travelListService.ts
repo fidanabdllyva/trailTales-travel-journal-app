@@ -64,10 +64,10 @@ export const getUserCollaborativeLists = async (): Promise<
 // Single list
 export const getTravelList = async (
   id: string
-): Promise<ApiResponse<TravelListType | null>> => {
+) => {
   try {
     const response = await instance.get(`${endpoints.list}/${id}`);
-    return response.data as ApiResponse<TravelListType | null>;
+    return response.data ;
   } catch (error) {
     console.error(`Failed to fetch travel list ${id}:`, error);
     throw error;
@@ -78,10 +78,10 @@ export const getTravelList = async (
 export const updateTravelList = async (
   id: string,
   formData: FormData
-): Promise<ApiResponse<TravelListType>> => {
+) => {
   try {
     const response = await instance.patch(`${endpoints.list}/${id}`, formData);
-    return response.data as ApiResponse<TravelListType>;
+    return response.data;
   } catch (error) {
     console.error(`Failed to update travel list ${id}:`, error);
     throw error;

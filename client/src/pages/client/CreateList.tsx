@@ -1,3 +1,5 @@
+"use client";
+
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -15,13 +17,14 @@ import { createDestination } from "@/api/requests/destinationService";
 import { travelListValidationSchema } from "@/validations/travelListValidationSchema";
 import { useNavigate } from "react-router";
 import type { CreateListFormValues } from "@/types/TravelListType";
+import { toast } from "sonner";
 
 export default function CreateList() {
   const [tagInput, setTagInput] = useState("");
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const navigate = useNavigate()
 
- const formik = useFormik<CreateListFormValues>({
+  const formik = useFormik<CreateListFormValues>({
     initialValues: {
       title: "",
       description: "",
@@ -45,7 +48,7 @@ export default function CreateList() {
     validationSchema: travelListValidationSchema,
     onSubmit: async (values) => {
       try {
-        console.log("Submitting travel list with values:", values);
+        toast.message("Submitting travel list...");
 
         // --- 1️⃣ Create Travel List ---
         const formData = new FormData();
@@ -59,7 +62,7 @@ export default function CreateList() {
         const listId = listResult.data.data.id;
 
         if (!listId) {
-          console.error("No travel list ID returned. Cannot create destinations.");
+          toast.error("No travel list ID returned. Cannot create destinations.");
           return;
         }
 
@@ -72,49 +75,65 @@ export default function CreateList() {
           destForm.append("city", dest.location.city);
           destForm.append("status", dest.status || "wishlist");
 
-          // Append dates based on status
           if (dest.status === "planned" || dest.status === "completed") {
             destForm.append("datePlanned", dest.datePlanned);
           }
           if (dest.status === "completed" && dest.dateVisited) {
             destForm.append("dateVisited", dest.dateVisited);
           }
-
-          // Append rating if completed
           if (dest.status === "completed" && dest.rating) {
             destForm.append("rating", String(dest.rating));
           }
-
           if (dest.notes) destForm.append("notes", dest.notes);
           destForm.append("listId", listId);
           if (dest.image) destForm.append("image", dest.image);
 
           const destResult = await createDestination(destForm);
-          console.log(`Destination #${index + 1} created:`, destResult.data);
-
           createdDestinations.push(destResult.data);
+          toast.success(`Destination #${index + 1} created`);
         }
 
+        console.log(`Travel list created! ${createdDestinations.length} destinations saved.`);
 
+        navigate(`/travel-list/${listId}`);
 
-
-        alert(`Travel list created! ${createdDestinations.length} destinations saved.`);
-
-        navigate(`/travel-list/${listId}`)
-
-        // --- 4️⃣ Reset form & preview ---
+        // --- Reset form & preview ---
         formik.resetForm();
         setPreviewUrl(null);
 
-      } catch (err) {
+      } catch (err: any) {
         console.error("Failed to create travel list:", err);
-        alert("Error creating travel list. Check console for details.");
+        toast.error(err?.response?.data?.message || "Error creating travel list.");
       }
     }
-
-
-    ,
   });
+
+  const handleAddTag = () => {
+    const trimmedTag = tagInput.trim();
+    if (!trimmedTag) return;
+
+    const tagRegex = /^[a-z0-9]+$/;
+    if (!tagRegex.test(trimmedTag)) {
+      toast.error("Tags must be lowercase, alphanumeric, no spaces or special characters");
+      return;
+    }
+
+    if (!formik.values.tags.includes(trimmedTag)) {
+      formik.setFieldValue("tags", [...formik.values.tags, trimmedTag]);
+      setTagInput("");
+      toast.success(`Tag "${trimmedTag}" added`);
+    } else {
+      toast.message(`Tag "${trimmedTag}" already exists`);
+    }
+  };
+
+  const handleRemoveTag = (tag: string) => {
+    formik.setFieldValue(
+      "tags",
+      formik.values.tags.filter((t) => t !== tag)
+    );
+    toast.message(`Tag "${tag}" removed`);
+  };
 
   return (
     <div className="mx-auto max-w-5xl px-4 pb-24">
@@ -194,12 +213,7 @@ export default function CreateList() {
                   />
                   <Button
                     type="button"
-                    onClick={() => {
-                      if (tagInput.trim()) {
-                        formik.setFieldValue("tags", [...formik.values.tags, tagInput.trim()]);
-                        setTagInput("");
-                      }
-                    }}
+                    onClick={handleAddTag}
                   >
                     Add
                   </Button>
@@ -209,12 +223,7 @@ export default function CreateList() {
                     <Badge
                       key={i}
                       variant="secondary"
-                      onClick={() =>
-                        formik.setFieldValue(
-                          "tags",
-                          formik.values.tags.filter((_, idx) => idx !== i)
-                        )
-                      }
+                      onClick={() => handleRemoveTag(tag)}
                     >
                       {tag} ✕
                     </Badge>
@@ -259,7 +268,10 @@ export default function CreateList() {
                         name={`destinations[${index}]`}
                         index={index}
                         formik={formik}
-                        onRemove={(i) => formik.setFieldValue("destinations", formik.values.destinations.filter((_, idx) => idx !== i))}
+                        onRemove={(i) => {
+                          formik.setFieldValue("destinations", formik.values.destinations.filter((_, idx) => idx !== i));
+                          toast.message(`Destination #${i + 1} removed`);
+                        }}
                       />
                     ))}
                     {formik.touched.destinations && typeof formik.errors.destinations === "string" && (
@@ -282,7 +294,6 @@ export default function CreateList() {
                   </div>
                 )}
               </FieldArray>
-
 
               <Separator />
 
