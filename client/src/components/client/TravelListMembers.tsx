@@ -147,7 +147,7 @@ const TravelListMembers = ({ members, list }: TravelListMembersProps) => {
         {/* Team Members Grid */}
         <CardContent className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-6 max-h-72 overflow-y-auto">
           {teamMembers.map((m) => (
-            <div key={m.id} className="relative flex flex-col items-center text-center w-24 group">
+            <div key={m.id} className="relative flex flex-col items-center text-center w-25 group">
               <Avatar className="w-12 h-12 mb-2 relative">
                 <AvatarImage src={m.profileImage} alt={m.fullName} />
                 <AvatarFallback>{m.fullName.split(" ").map((n) => n[0]).join("").toUpperCase()}</AvatarFallback>

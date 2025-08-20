@@ -24,6 +24,7 @@ import CreateList from "@/pages/client/CreateList";
 import ProtectedRoute from "@/components/client/ProtectedRoute";
 import RedirectIfAuth from "@/components/auth/RedirectIfAuth";
 import CollaboratorRequests from "@/pages/client/CollaboratorRequests";
+import CreateJournal from "@/pages/client/CreateJournal";
 
 const ROUTES = [
     //Auth Routes
@@ -95,6 +96,10 @@ const ROUTES = [
             {
                 path: "my-journals",
                 element: <MyJournals />
+            },
+            {
+                path:"journal/create",
+                element:<CreateJournal/>
             },
             {
                 path: "journal/:id",
