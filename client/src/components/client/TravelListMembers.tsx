@@ -9,7 +9,7 @@ import { addCollaborator, removeCollaborator } from "@/api/requests/travelListSe
 import { Badge } from "@/components/ui/badge";
 import { useSelector } from "react-redux";
 import type { RootState } from "@/redux/store";
-import { Loader2, X } from "lucide-react";
+import { Loader2, Plus, X } from "lucide-react";
 import { toast } from "sonner";
 import type { TravelListType } from "@/types/TravelListType";
 import type { User } from "@/types/UserType";
@@ -93,7 +93,7 @@ const TravelListMembers = ({ members, list }: TravelListMembersProps) => {
           <h2 className="text-lg font-semibold">Team Members</h2>
           <Dialog open={open} onOpenChange={setOpen}>
             <DialogTrigger asChild>
-              {list.owner.id === currentUserId ? <Button size="sm">Invite</Button> : null}
+              {list.owner.id === currentUserId ? <Button size="sm"><Plus/>Invite</Button> : null}
             </DialogTrigger>
             <DialogContent className="sm:max-w-md">
               <DialogHeader>

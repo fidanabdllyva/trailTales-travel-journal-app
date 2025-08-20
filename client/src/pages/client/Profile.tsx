@@ -59,12 +59,12 @@ const ProfilePage = () => {
             <h1 className="text-3xl font-bold">{user.fullName}</h1>
             <div className="flex items-center gap-4">
               <EditProfile />
-              {user.authProvider==="google" ? '' : (<ChangePassword/>)
+              {user.authProvider === "google" ? '' : (<ChangePassword />)
               }
-      
+
             </div>
           </div>
-          
+
           <div className="flex flex-col gap-2 mt-3 text-muted-foreground">
 
             <div className="flex items-center gap-1">
@@ -79,15 +79,14 @@ const ProfilePage = () => {
               <span>Member since {moment(user.createdAt).format('LL')}</span>
             </div>
 
-            <div className="mt-3">
-              {user.bio ? (
-                <span> {user.bio}</span>
-              )
-                : (
-                  <span className="text-muted-foreground">No bio available</span>
-                )}
+            <div className="mt-3 w-full">
+  {user.bio ? (
+    <p className="break-all overflow-hidden text-ellipsis">{user.bio}</p>
+  ) : (
+    <p className="text-muted-foreground">No bio available</p>
+  )}
+</div>
 
-            </div>
           </div>
 
 

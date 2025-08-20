@@ -1,21 +1,20 @@
 import { useEffect, useState } from "react";
-import { useParams, Link, useNavigate } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
 import {
-  MapPin, CheckCircle2, Users2, Pencil, MessageSquare,
-  Share2, Settings, CalendarDays
+  MapPin, CheckCircle2, Users2, Pencil,
+  Share2,  CalendarDays
 } from "lucide-react";
-import { FaRegComment, FaRegHeart } from "react-icons/fa";
 import type { TravelListType } from "@/types/TravelListType";
 import { getTravelList } from "@/api/requests/travelListService";
 import TravelListMembers from "@/components/client/TravelListMembers";
-import { Dialog, DialogContent, DialogTrigger } from "@radix-ui/react-dialog";
 import TravelLIstChat from "@/components/client/TravelLIstChat";
+import TravelListSettings from "@/components/client/TravelListSettings";
+import { useSelector } from "react-redux";
+import type { RootState } from "@/redux/store";
 
 // Mock formatDate function
 const formatDate = (date?: string | Date) => {
@@ -53,23 +52,32 @@ export default function TravelListDetail() {
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
 
-  useEffect(() => {
+  const currentUserId = useSelector((s: RootState) => s.user.data?.id)
+
+  const fetchList = async () => {
     if (!id) return;
-    (async () => {
-      try {
-        setLoading(true);
-        const res = await getTravelList(id);
-        setList(res.data);
-      } catch (error) {
-        console.error("Failed to load travel list", error);
-      } finally {
-        setLoading(false);
-      }
-    })();
+    try {
+      setLoading(true);
+      const res = await getTravelList(id);
+      setList(res.data);
+    } catch (error) {
+      console.error("Failed to load travel list", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchList();
   }, [id]);
+
 
   if (loading) {
     return <div className="p-6 text-center">Loading travel list...</div>;
+  }
+
+  if (!currentUserId) {
+    return <div className="p-6 text-center text-red-500">User not found.</div>;
   }
 
   if (!list) {
@@ -128,15 +136,16 @@ export default function TravelListDetail() {
           </h1>
           <p className="mt-2 max-w-2xl text-white/90">{list.description}</p>
           <div className="mt-3 flex flex-wrap gap-2">
-            {list.tags.map((t) => (
+            {list.tags?.map((t, index) => (
               <Badge
-                key={t}
+                key={`${t}-${index}`}
                 variant="secondary"
                 className="bg-white/90 text-gray-900"
               >
                 #{t}
               </Badge>
             ))}
+
           </div>
 
           {/* Actions */}
@@ -148,9 +157,17 @@ export default function TravelListDetail() {
             <Button variant="secondary" className="bg-white/90 text-gray-900" onClick={handleShare}>
               <Share2 className="mr-2 h-4 w-4" /> Share
             </Button>
-            <Button variant="secondary" className="bg-white/90 text-gray-900">
-              <Settings className="mr-2 h-4 w-4" /> Settings
-            </Button>
+            <TravelListSettings
+              listId={list.id}
+              userId={currentUserId}
+              ownerId={list.owner.id}
+              isCollaborator={list.collaborators.some((c) => c.id === currentUserId)}
+              onDeleted={() => navigate(-1)}
+              onUpdated={async () => {
+                await fetchList(); 
+              }}
+            />
+
           </div>
         </div>
       </div>
@@ -263,11 +280,11 @@ export default function TravelListDetail() {
                 </div>
 
                 {/* Journal entry count */}
-                {d.journalEntries?.length > 0 && (
+                {/* {d.journalEntries?.length > 0 && (
                   <p className="text-sm text-gray-500 mt-1">
                     ✏ {d.journalEntries.length} journal entry{d.journalEntries.length > 1 ? "ies" : ""}
-                  </p>
-                )}
+                  </p> 
+                {/* )} */}
               </div>
             </Card>
 
@@ -276,7 +293,7 @@ export default function TravelListDetail() {
         </TabsContent>
 
         {/* Journals */}
-        <TabsContent value="journals" className="space-y-4">
+        {/* <TabsContent value="journals" className="space-y-4">
           {(list as any).journals?.map((j: any) => (
             <Card key={j.id}>
               <div className="flex flex-col gap-4 p-4">
@@ -323,10 +340,10 @@ export default function TravelListDetail() {
               </div>
             </Card>
           ))}
-        </TabsContent>
+        </TabsContent> */}
 
         {/* Photos */}
-        <TabsContent value="photos">
+        {/* <TabsContent value="photos">
           {publicPhotos.length === 0 ? (
             <div className="py-8 text-center text-muted-foreground">
               No images to display yet.
@@ -347,7 +364,7 @@ export default function TravelListDetail() {
               ))}
             </div>
           )}
-        </TabsContent>
+        </TabsContent> */}
       </Tabs>
     </div>
   );

@@ -130,42 +130,74 @@ const getTravelList = async (id, userId) => {
 
 // Update travel list
 const updateTravelList = async (id, updateData, userId, file) => {
-    const list = await TravelListModel.findById(id);
+    let list = await TravelListModel.findById(id);
     if (!list) return { success: false, message: "Travel list not found" };
 
-    if (list.owner.toString() !== userId) return { success: false, message: "Only the owner can update this list" };
+    // Check permissions
+    const isOwner = list.owner.toString() === userId;
+    const isCollaborator = list.collaborators.some(c => c.toString() === userId);
 
+    if (!isOwner && !isCollaborator) {
+        return { success: false, message: "Only the owner or collaborators can update this list" };
+    }
+
+    // Handle cover image upload
     if (file) {
-        if (list.coverImage) {
+        if (list.coverImage && list.public_id) {
             await cloudinary.uploader.destroy(list.public_id);
         }
         const result = await cloudinary.uploader.upload(file.path || file, {
-            folder: 'travel_lists',
-            resource_type: 'auto'
+            folder: "travel_lists",
+            resource_type: "auto",
         });
         list.coverImage = result.secure_url;
+        list.public_id = result.public_id;
     }
 
     const { title, description, tags, isPublic } = updateData;
-    if (title) list.title = title;
-    if (description) list.description = description;
-    if (tags) {
-        list.tags = Array.isArray(tags)
-            ? tags.map(t => t.trim())
-            : tags.split(',').map(t => t.trim());
+
+    // Editable by owner & collaborators
+    if (title !== undefined) list.title = title;
+    if (description !== undefined) list.description = description;
+
+    if (tags !== undefined) {
+        let parsedTags = [];
+
+        if (Array.isArray(tags)) {
+            parsedTags = tags;
+        } else if (typeof tags === "string") {
+            try {
+                parsedTags = JSON.parse(tags); // handles JSON.stringify([...])
+            } catch {
+                parsedTags = tags.split(",").map(t => t.trim());
+            }
+        }
+
+        list.tags = parsedTags.filter(Boolean).map(t => t.trim());
     }
 
-    if (isPublic !== undefined) list.isPublic = isPublic;
+    // Only owner can change visibility
+    if (isOwner && isPublic !== undefined) {
+        list.isPublic = isPublic;
+    }
 
     await list.save();
 
+    // Always repopulate with latest data
     const populatedList = await TravelListModel.findById(list._id)
-        .populate('owner', 'username fullName profileImage')
-        .populate('collaborators', 'username fullName profileImage')
-        .populate('destinations');
+        .populate("owner", "-password") // security
+        .populate("collaborators", "-password")
+        .populate("destinations");
 
-    return { success: true, message: "Travel list updated successfully", data: populatedList };
+    return {
+        success: true,
+        message: "Travel list updated successfully",
+        data: populatedList
+    };
 };
+
+
+
 
 // Delete travel list
 const deleteTravelList = async (id, userId) => {
@@ -247,7 +279,7 @@ const removeCollaborator = async (listId, collaboratorId, userId) => {
 
         // Send removal email
         const owner = await UserModel.findById(userId);
-        await sendCollaboratorRemovedEmail(collaborator.email, collaborator.fullName, list.title, owner.fullName,owner.email);
+        await sendCollaboratorRemovedEmail(collaborator.email, collaborator.fullName, list.title, owner.fullName, owner.email);
     }
 
     // Return populated list

@@ -121,34 +121,33 @@ module.exports = {
         }
     },
 
-    // Update a travel list
-    async updateList(req, res, next) {
-        try {
-            const { id } = req.params;
-            const userId = req.user.id;
-            const { title, description, tags, isPublic, coverImage } = req.body;
+   async updateList(req, res, next) {
+    try {
+        const { id } = req.params;
+        const userId = req.user.id;
+        const { title, description, tags, isPublic } = req.body;
+        const file = req.file; // multer provides this
 
-            const updateData = { title, description, tags, isPublic, coverImage };
+        const updateData = { title, description, tags, isPublic };
 
-            const response = await travelListService.updateTravelList(id, updateData, userId);
+        const response = await travelListService.updateTravelList(id, updateData, userId, file);
 
-            if (!response.success) {
-                const statusCode = response.message === "Travel list not found" ? 404 : 403;
-                return res.status(statusCode).json({
-                    message: response.message,
-                    data: null,
-                });
-            }
-
-            res.status(200).json({
+        if (!response.success) {
+            const statusCode = response.message === "Travel list not found" ? 404 : 403;
+            return res.status(statusCode).json({
                 message: response.message,
-                data: formatMongoData(response.data),
+                data: null,
             });
-        } catch (error) {
-            next(error);
         }
-    },
 
+        res.status(200).json({
+            message: response.message,
+            data: formatMongoData(response.data),
+        });
+    } catch (error) {
+        next(error);
+    }
+},
     // Delete a travel list
     async deleteList(req, res, next) {
         try {

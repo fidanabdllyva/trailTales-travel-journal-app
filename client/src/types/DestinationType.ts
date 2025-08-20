@@ -16,7 +16,7 @@ export interface DestinationType {
     updatedAt: Date;
     rating: number | null
     listId?: string;
-    image:File | string | null
+    image:string | null | undefined
 }
 
 
