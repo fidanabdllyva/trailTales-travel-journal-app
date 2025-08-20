@@ -114,7 +114,6 @@ export const editListValidationSchema = Yup.object({
   tags: Yup.array().of(Yup.string()
     .matches(/^[a-z0-9]+$/, "Tags must be lowercase, alphanumeric, no spaces or special characters")
     .required("Tag cannot be empty")).min(1, "At least one tag is required"),
-  coverImage: Yup.mixed<File>()
-    .required("Cover image is required")
+  coverImage: Yup.mixed<File>().nullable()
 
 });

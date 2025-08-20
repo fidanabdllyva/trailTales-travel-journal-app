@@ -223,6 +223,8 @@ export default function TravelListDetail() {
             <TravelListDestinations
               key={d.id}
               destination={d}
+              ownerId={list.owner.id}
+              collaborators={list.collaborators}
               onDeleted={(deletedId) => {
                 setList((prev) => {
                   if (!prev) return prev;
