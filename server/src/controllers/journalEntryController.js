@@ -31,7 +31,7 @@ module.exports = {
 
     async updateJournalEntry(req, res) {
         try {
-            const entry = await journalService.updateJournalEntry(req.params.id, req.body, req.files, req.user.id);
+            const entry = await journalService.updateJournalEntry(req.params.id, req.body, req.file, req.user.id);
             res.json(formatMongoData(entry));
         } catch (err) {
             res.status(403).json({ message: err.message });

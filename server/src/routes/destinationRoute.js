@@ -21,7 +21,7 @@ router.get('/:id', destinationController.getDestination);
 
 // Update a destination
 router.patch('/:id',
-    uploadMiddleware.array('images', 5),
+    uploadMiddleware.single('image'),
     destinationController.updateDestination
 );
 

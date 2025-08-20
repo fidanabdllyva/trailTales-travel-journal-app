@@ -1,38 +1,46 @@
 import * as Yup from "yup";
 
-const DestinationSchema = Yup.object().shape({
-  location: Yup.object().shape({
-    country: Yup.string()
-      .trim()
-      .required("Country is required"),
-    city: Yup.string()
-      .trim()
-      .required("City is required"),
-  }),
-
-  datePlanned: Yup.date()
-    .nullable()
-    .optional(),
-
-  dateVisited: Yup.date()
-    .nullable()
-    .optional(),
-
+export const editDestinationValidationSchema = Yup.object({
+  country: Yup.string().required("Country is required"),
+  city: Yup.string().required("City is required"),
   status: Yup.string()
-    .oneOf(['wishlist', 'planned', 'completed', 'cancelled'], "Invalid status")
+    .oneOf(["wishlist", "planned", "completed", "cancelled"])
     .required("Status is required"),
-
-  notes: Yup.string()
-    .trim()
-    .optional(),
-
-  // image: Yup.object().shape({
-  //   url: Yup.string().required("Image URL is required").url("Must be a valid URL"),
-  //   public_id: Yup.string().optional(),
-  // }).required("Image is required"),
-
-  listId: Yup.string()
-    .required("Travel list ID is required"),
+  datePlanned: Yup.string().nullable().test(
+    "datePlannedRequired",
+    "Planned date is required",
+    function (value) {
+      const { status } = this.parent;
+      if ((status === "planned" || status === "completed") && !value) return false;
+      return true;
+    }
+  ),
+  dateVisited: Yup.string().nullable().test(
+    "dateVisitedRequired",
+    "Visited date is required",
+    function (value) {
+      const { status } = this.parent;
+      if (status === "completed" && !value) return false;
+      return true;
+    }
+  ).test(
+    "dateVisitedAfterPlanned",
+    "Visited date must be after planned date",
+    function (value) {
+      const { datePlanned } = this.parent;
+      if (value && datePlanned && value <= datePlanned) return false;
+      return true;
+    }
+  ),
+  rating: Yup.number().nullable().min(1).max(5).test(
+    "ratingRequired",
+    "Rating is required",
+    function (value) {
+      const { status } = this.parent;
+      if (status === "completed" && (value === undefined || value === null)) return false;
+      return true;
+    }
+  ),
+  notes: Yup.string().trim(),
+  image: Yup.mixed<File>().nullable(), // optional, old image is kept if not changed
 });
-
-export default DestinationSchema;

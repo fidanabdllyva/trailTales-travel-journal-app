@@ -218,25 +218,35 @@ export default function TravelListDetail() {
           <TabsTrigger value="photos">Photos</TabsTrigger>
         </TabsList>
 
-      {/* Destinations */}
-<TabsContent value="destinations" className="space-y-4">
-  {list.destinations.map((d) => (
-    <TravelListDestinations
-      key={d.id}
-      destination={d}
-      onDeleted={(deletedId) => {
-        // Remove deleted destination from state
-        setList((prev) => {
-          if (!prev) return prev;
-          return {
-            ...prev,
-            destinations: prev.destinations.filter((dest) => dest.id !== deletedId),
-          };
-        });
-      }}
-    />
-  ))}
-</TabsContent>
+        <TabsContent value="destinations" className="space-y-4">
+          {list.destinations.map((d) => (
+            <TravelListDestinations
+              key={d.id}
+              destination={d}
+              onDeleted={(deletedId) => {
+                setList((prev) => {
+                  if (!prev) return prev;
+                  return {
+                    ...prev,
+                    destinations: prev.destinations.filter((dest) => dest.id !== deletedId),
+                  };
+                });
+              }}
+              onUpdated={(updated) => {
+                setList((prev) => {
+                  if (!prev) return prev;
+                  return {
+                    ...prev,
+                    destinations: prev.destinations.map((dest) =>
+                      dest.id === updated.id ? updated : dest
+                    ),
+                  };
+                });
+              }}
+            />
+          ))}
+        </TabsContent>
+
 
 
         {/* Journals */}
