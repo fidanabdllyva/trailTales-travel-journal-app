@@ -34,7 +34,7 @@ export const getDestinationsByList = async (listId: string, status?: string): Pr
     const response = await instance.get(`${endpoints.destination}/list/${listId}`, {
       params: { status },
     });
-    return response.data as DestinationType[]; // backend returns array
+    return response.data as DestinationType[]; 
   } catch (error: any) {
     console.error(`Failed to fetch destinations for list ${listId}:`, error.response?.data || error.message);
     throw error;
