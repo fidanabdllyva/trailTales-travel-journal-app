@@ -36,6 +36,17 @@ export const destinationValidationSchema = Yup.object({
         if (status === "completed" && !value) return false;
         return true;
       }
+    )
+    .test(
+      "dateVisitedAfterPlanned",
+      "Visited date must be after planned date",
+      function (value) {
+        const { datePlanned } = this.parent;
+        if (value && datePlanned && value <= datePlanned) {
+          return false;
+        }
+        return true;
+      }
     ),
 
   rating: Yup.number()
@@ -58,7 +69,11 @@ export const destinationValidationSchema = Yup.object({
 
   image: Yup.mixed<File>()
     .required("Destination image is required")
-    .test("fileSize", "File too large", (file) => !file || file.size <= 5 * 1024 * 1024)
+    .test(
+      "fileSize",
+      "File too large",
+      (file) => !file || file.size <= 5 * 1024 * 1024
+    )
     .test(
       "fileType",
       "Unsupported file format",
@@ -67,6 +82,7 @@ export const destinationValidationSchema = Yup.object({
         ["image/jpeg", "image/png", "image/jpg", "image/webp"].includes(file.type)
     ),
 });
+
 
 
 

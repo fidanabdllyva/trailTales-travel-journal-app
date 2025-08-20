@@ -43,7 +43,7 @@ const TravelListSettings: React.FC<TravelListSettingsProps> = ({
       await deleteTravelList(listId);
       toast.success("Travel list deleted successfully");
       onDeleted?.();
-      setIsDeleteDialogOpen(false); // close dialog after success
+      setIsDeleteDialogOpen(false); 
     } catch (error) {
       console.error(error);
       toast.error("Failed to delete travel list");
