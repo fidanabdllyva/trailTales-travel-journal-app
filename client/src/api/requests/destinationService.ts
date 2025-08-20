@@ -51,10 +51,10 @@ export const getDestination = async (id: string): Promise<DestinationType> => {
   }
 };
 
-export const updateDestination = async (id: string, formData: FormData): Promise<DestinationType> => {
+export const updateDestination = async (id: string, formData: FormData) => {
   try {
     const response = await instance.patch(`${endpoints.destination}/${id}`, formData);
-    return response.data as DestinationType; // backend returns updated destination
+    return response.data ; // backend returns updated destination
   } catch (error: any) {
     console.error(`Failed to update destination ${id}:`, error.response?.data || error.message);
     throw error;

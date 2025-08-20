@@ -1,6 +1,6 @@
 import * as Yup from "yup";
 
-export const destinationValidationSchema = Yup.object({
+const destinationValidationSchema = Yup.object({
   location: Yup.object({
     country: Yup.string().required("Country is required"),
     city: Yup.string().required("City is required"),
@@ -82,9 +82,6 @@ export const destinationValidationSchema = Yup.object({
         ["image/jpeg", "image/png", "image/jpg", "image/webp"].includes(file.type)
     ),
 });
-
-
-
 
 // Travel List schema
 export const travelListValidationSchema = Yup.object().shape({

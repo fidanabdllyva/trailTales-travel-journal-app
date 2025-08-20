@@ -136,7 +136,7 @@ const EditTravelListDialog: React.FC<EditTravelListDialogProps> = ({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-3xl w-full p-6 space-y-6">
+      <DialogContent className="max-w-3xl w-full p-6 max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Edit Travel List</DialogTitle>
         </DialogHeader>

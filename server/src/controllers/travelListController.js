@@ -126,7 +126,7 @@ module.exports = {
         const { id } = req.params;
         const userId = req.user.id;
         const { title, description, tags, isPublic } = req.body;
-        const file = req.file; // multer provides this
+        const file = req.file;
 
         const updateData = { title, description, tags, isPublic };
 
