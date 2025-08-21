@@ -9,17 +9,16 @@ const connectToDB = (app) => {
     .then(() => {
       console.log("MongoDB connected 😏");
 
-      // Create HTTP server for Socket.IO
       const server = http.createServer(app);
 
-      // Initialize Socket.IO
       const io = initSocket(server, CLIENT_URL);
+
+      // Store io inside app so controllers can use it
+      app.set("io", io);
 
       server.listen(PORT, () => {
         console.log(`HTTP + WS server running on ${PORT}`);
       });
-
-      return { server, io }; // optional if you want to export
     })
     .catch((err) => {
       console.warn("DB connection failed 😔", err.message);

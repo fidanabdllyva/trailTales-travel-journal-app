@@ -99,7 +99,6 @@ const getUserOwnLists = async (userId) => {
 
 // Get collaborative lists
 const getUserCollaborativeLists = async (userId) => {
-    console.log("Fetching collaborative lists for userId:", userId);
     const lists = await TravelListModel.find({ collaborators: userId })
         .populate('owner', 'username fullName profileImage')
         .populate('collaborators', 'username fullName profileImage')
