@@ -148,7 +148,7 @@ export default function TravelListDetail() {
             {/* Chat & Settings only for owner/collaborators */}
             {(list.owner.id === currentUserId || list.collaborators.some(c => c.id === currentUserId)) && (
               <>
-                <TravelLIstChat />
+                <TravelLIstChat  listId={list.id}/>
                 <TravelListSettings
                   listId={list.id}
                   userId={currentUserId}

@@ -11,6 +11,8 @@ require("./src/config/passport");
 const googleAuthRoute = require("./src/routes/googleAuthRoute");
 const destinationRouter=require("./src/routes/destinationRoute")
 const journalEntryRouter = require("./src/routes/journalEntryRoute")
+const chatRouter = require("./src/routes/chatRoute");
+const messageRouter = require("./src/routes/messageRoute");
 
 
 const app = express();
@@ -38,6 +40,8 @@ app.use("/auth", userRouter);
 app.use("/list", travelListRouter);
 app.use("/destination", destinationRouter)
 app.use("/journal", journalEntryRouter)
+app.use("/chat", chatRouter);
+app.use("/message", messageRouter);
 
 app.use(passport.initialize());
 app.use("/auth", googleAuthRoute); 

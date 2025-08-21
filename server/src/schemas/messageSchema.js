@@ -1,13 +1,16 @@
-import mongoose from "mongoose";
+const mongoose = require("mongoose")
 const applyIdTransform = require("../utils/idTransform")
 
 const messageSchema = new mongoose.Schema(
   {
-    group: { type: mongoose.Schema.Types.ObjectId, ref: "Group", index: true, required: true },
+    chat: { type: mongoose.Schema.Types.ObjectId, ref: "Chat", index: true, required: true },
     author: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
     body: {
-      text: String,
-      files: [{ url: String, name: String, size: Number }]
+      text: { type: String },
+      imageUrl: { type: String },
+      fileUrl: { type: String },
+      fileName: { type: String },
+      audioUrl: { type: String },
     },
     deliveredTo: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
     readBy: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
@@ -18,4 +21,4 @@ const messageSchema = new mongoose.Schema(
 
 applyIdTransform(messageSchema)
 
-export default messageSchema;
+module.exports= messageSchema;
