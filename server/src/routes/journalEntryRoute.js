@@ -19,6 +19,8 @@ router.post('/',
 // Get all journal entries (with filters)
 router.get('/', journalEntryController.getJournalEntries);
 
+router.get('/user', journalEntryController.getUserOwnJournalEntry);
+
 // Get a single journal entry
 router.get('/:id', journalEntryController.getJournalEntryById);
 

@@ -1,5 +1,6 @@
 const JournalEntry = require('../models/journalEntryModel');
 const Comment = require('../models/commentModel');
+const JournalEntryModel = require('../models/journalEntryModel');
 const cloudinary = require("cloudinary").v2;
 
 const createJournalEntry = async (entryData, files, userId) => {
@@ -179,6 +180,17 @@ const toggleLike = async (entryId, userId) => {
     return entry;
 };
 
+const getUserOwnJournalEntry = async (userId) => {
+  return await JournalEntryModel.find({ author: userId })
+    .populate("author", "username profileImage fullName") // populate journal author
+    .populate("likes.userId", "username profileImage")    // populate users who liked
+    .populate({
+      path: "comments",
+      populate: { path: "authorId", select: "username profileImage" }, // populate comment authors
+    });
+};
+
+
 module.exports = {
     createJournalEntry,
     getJournalEntries,
@@ -186,5 +198,6 @@ module.exports = {
     updateJournalEntry,
     deleteJournalEntry,
     removePhoto,
-    toggleLike
+    toggleLike,
+    getUserOwnJournalEntry
 };
