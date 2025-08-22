@@ -150,7 +150,7 @@ const CreateJournal = () => {
               >
                 <option value="">Select a country</option>
                 {mockCountries.map((c) => (
-                  <option key={c.code} value={c.code}>
+                  <option key={c.code} value={c.name.en}>
                     {c.name.en}
                   </option>
                 ))}
@@ -169,7 +169,7 @@ const CreateJournal = () => {
               >
                 <option value="">Select City</option>
                 {mockCountries
-                  .find((c) => c.code === formik.values.country)
+                  .find((c) => c.name.en === formik.values.country)
                   ?.cities.map((city) => (
                     <option key={city} value={city}>
                       {city}
