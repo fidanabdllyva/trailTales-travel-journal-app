@@ -70,8 +70,6 @@ const getPublicTravelLists = async (params = {}) => {
       query.owner = { $ne: excludeUserId };
     }
 
-  console.log("Final Query (service):", query);
-
   const lists = await TravelListModel.find(query)
     .populate("owner", "username fullName profileImage")
     .populate("collaborators", "username fullName profileImage")

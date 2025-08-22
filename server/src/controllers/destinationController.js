@@ -4,9 +4,7 @@ const formatMongoData = require('../utils/formatMongoData');
 module.exports = {
   async createDestination(req, res) {
     try {
-      console.log("Incoming destination data:", req.body);
-      console.log("Incoming file:", req.file);
-      console.log("User ID:", req.user.id);
+  
 
       const destination = await destinationService.createDestination(
         req.body,
@@ -14,7 +12,7 @@ module.exports = {
         req.user.id
       );
 
-      console.log("Created destination:", destination);
+   
 
       res.status(201).json({
         success: true,

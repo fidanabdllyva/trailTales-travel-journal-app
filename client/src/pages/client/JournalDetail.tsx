@@ -22,6 +22,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import JournalDetailCarousel from "@/components/client/JournalDetailCarousel";
+import JournalActions from "@/components/client/JournalActions";
 
 
 const JournalDetail = () => {
@@ -150,7 +151,7 @@ const JournalDetail = () => {
                 </p>
               </div>
             </div>
-            <EllipsisVertical />
+           <JournalActions journal={journal}/>
           </div>
 
           {/* Content & Comments */}
