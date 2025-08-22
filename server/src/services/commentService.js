@@ -1,10 +1,10 @@
 const Comment = require("../models/commentModel");
 const JournalEntry = require("../models/journalEntryModel");
 
-const createComment = async (journalEntryId, userId, content) => {
+const createComment = async (journalEntryId, user, content) => {
   const comment = await Comment.create({
     content,
-    author: userId,
+    author: user,
     journalEntry: journalEntryId,
   });
 
@@ -13,12 +13,13 @@ const createComment = async (journalEntryId, userId, content) => {
     $push: { comments: comment._id },
   });
 
+  await comment.populate("author", "username profileImage");
   return comment;
 };
 
 const getCommentsByJournal = async (journalEntryId) => {
   return await Comment.find({ journalEntry: journalEntryId })
-    .populate("author", "username avatar")
+    .populate("author", "username profileImage")
     .sort({ createdAt: -1 });
 };
 
@@ -32,7 +33,6 @@ const deleteComment = async (commentId, userId) => {
 
   await Comment.findByIdAndDelete(commentId);
 
-  // Remove from journalEntry.comments
   await JournalEntry.findByIdAndUpdate(comment.journalEntry, {
     $pull: { comments: comment._id },
   });

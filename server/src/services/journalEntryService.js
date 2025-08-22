@@ -166,7 +166,8 @@ const removePhoto = async (id, photoUrl, userId) => {
 };
 
 const toggleLike = async (entryId, userId) => {
-    const entry = await JournalEntry.findById(entryId);
+    const entry = await JournalEntry.findById(entryId)
+    .populate("author", "username profileImage fullName");
     if (!entry) throw new Error('Journal entry not found');
 
     const index = entry.likes.findIndex(like => like.userId.toString() === userId.toString());
@@ -186,7 +187,7 @@ const getUserOwnJournalEntry = async (userId) => {
     .populate("likes.userId", "username profileImage")    // populate users who liked
     .populate({
       path: "comments",
-      populate: { path: "authorId", select: "username profileImage" }, // populate comment authors
+      populate: { path: "author", select: "username profileImage" }, // populate comment authors
     });
 };
 

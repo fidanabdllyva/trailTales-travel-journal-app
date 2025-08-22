@@ -59,7 +59,7 @@ const ExploreListCard: React.FC<ExploreListCardProps> = ({ list }) => {
 
 
                 {/* Author & Date */}
-                <p className="text-xs text-gray-400 py-4 mb-3">
+                <div className="text-xs text-gray-400 py-4 mb-3">
                     <div className="flex items-center gap-1">
 
                         <img
@@ -71,7 +71,7 @@ const ExploreListCard: React.FC<ExploreListCardProps> = ({ list }) => {
                         <span>by {list.owner?.fullName || "Unknown"}</span>
                         · {new Date(createdAt).toLocaleDateString()}
                     </div>
-                </p>
+                </div>
             </CardContent>
         </Card>
     );

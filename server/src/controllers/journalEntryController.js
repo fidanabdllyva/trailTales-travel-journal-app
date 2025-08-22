@@ -66,7 +66,7 @@ module.exports = {
         }
     },
 
-    async getUserOwnJournalEntry(req,res){
+    async getUserOwnJournalEntry(req,res,next){
          try {
             const userId = req.user.id;
             const journals = await journalService.getUserOwnJournalEntry(userId);
