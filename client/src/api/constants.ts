@@ -6,6 +6,7 @@ type endpointType = {
   journal: string
   chat:string
   message:string
+  comments:string
 };
 
 export const endpoints: endpointType = {
@@ -15,6 +16,7 @@ export const endpoints: endpointType = {
   journal: "/journal",
   chat: "/chat",
   message: "/message",
+  comments:"/comments"
 
 }
 export const DEFAULT_AVATAR_PHOTO = "/default-avatar.png";

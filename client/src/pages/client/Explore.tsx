@@ -13,11 +13,14 @@ import { useEffect, useState } from "react";
 import { getPublicTravelLists } from "@/api/requests/travelListService";
 import { useSelector } from "react-redux";
 import type { RootState } from "@/redux/store";
-import JournalEntriesMock from "@/components/client/ExploreJournalCard";
 import { motion } from "framer-motion";
+import type { JournalEntryType } from "@/types/JournalEntryType";
+import { getPublicJournalEntries } from "@/api/requests/journalEntryService";
+import ExploreJournalCard from "@/components/client/ExploreJournalCard";
 
 const Explore = () => {
   const [travelLists, setTravelLists] = useState<TravelListType[]>([]);
+  const [journals, setJournals] = useState<JournalEntryType[]>([])
   const [loading, setLoading] = useState(false);
   const currentUserId = useSelector((s: RootState) => s.user.data?.id);
 
@@ -44,6 +47,30 @@ const Explore = () => {
 
     fetchTravelLists();
   }, [currentUserId]);
+
+  useEffect(() => {
+    const fetchJournals = async () => {
+      setLoading(true);
+      try {
+        const response = await getPublicJournalEntries({ page: 1, limit: 10 });
+        const allJournals = response?.entries || [];
+console.log(allJournals)
+        const filteredJournals = allJournals.filter(
+          (entry: JournalEntryType) => entry.author?.id !== currentUserId
+        );
+
+        setJournals(filteredJournals);
+      } catch (error) {
+        console.error("Failed to fetch journals:", error);
+        setJournals([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchJournals();
+  }, [currentUserId]);
+
 
   return (
     <div className="max-w-7xl mx-auto p-6">
@@ -97,18 +124,18 @@ const Explore = () => {
               No destinations yet.
             </div>
           ) : (
-                <motion.div
-      initial={{ opacity: 0, y: 12 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.25 }}
-      className="h-full"
-    >
-            <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-              {travelLists.map((list) => (
-                <ExploreListCard key={list.id} list={list} />
-              ))}
-            </div>
-    </motion.div>
+            <motion.div
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.25 }}
+              className="h-full"
+            >
+              <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+                {travelLists.map((list) => (
+                  <ExploreListCard key={list.id} list={list} />
+                ))}
+              </div>
+            </motion.div>
           )}
         </TabsContent>
 
@@ -116,18 +143,22 @@ const Explore = () => {
         <TabsContent value="journal">
           {loading ? (
             <div className="text-center py-12">Loading...</div>
+          ) : journals.length === 0 ? (
+            <div className="text-center text-muted-foreground py-12">
+              No journal entries yet.
+            </div>
           ) : (
-            <>
-              {/* Replace JournalEntriesMock with real data fetch later */}
-              <JournalEntriesMock />
-              {/* If no data, show fallback */}
-              {/* Example: conditionally render */}
-              {/* {journals.length === 0 && ( */}
-              <div className="text-center text-muted-foreground py-12">
-                No journal entries yet.
+            <motion.div
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.25 }}
+            >
+              <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+                {journals.map((journal) => (
+                  <ExploreJournalCard key={journal.id} journal={journal} />
+                ))}
               </div>
-              {/* )} */}
-            </>
+            </motion.div>
           )}
         </TabsContent>
       </Tabs>
