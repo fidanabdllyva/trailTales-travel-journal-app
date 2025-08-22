@@ -23,10 +23,15 @@ const journalEntrySchema = new mongoose.Schema({
     ref: "Comment",
     default: [],
   },
-
+  rating: {
+    type: Number,
+    min: 1,
+    max: 5,
+  },
+   dateVisited: { type: Date },
   location: {
-    country: { type: String, required:true },
-    city: { type: String, required:true },
+    country: { type: String, required: true },
+    city: { type: String, required: true },
   },
 
   author: {
