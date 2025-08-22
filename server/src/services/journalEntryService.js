@@ -4,7 +4,7 @@ const JournalEntryModel = require('../models/journalEntryModel');
 const cloudinary = require("cloudinary").v2;
 
 const createJournalEntry = async (entryData, files, userId) => {
-    const { title, content, country, city, public: isPublic } = entryData;
+    const { title, content, country, city, rating, public: isPublic, dateVisited } = entryData;
     let photos = [];
 
     // Upload photos
@@ -23,9 +23,11 @@ const createJournalEntry = async (entryData, files, userId) => {
         title,
         content,
         photos,
+        rating,
         location: { country, city },
         author: userId,
-        public: isPublic || false
+        public: isPublic || false,
+        dateVisited: dateVisited ? new Date(dateVisited) : null
     });
 
     await journalEntry.save();
@@ -104,7 +106,7 @@ const getJournalEntryById = async (id, userId) => {
 };
 
 const updateJournalEntry = async (id, updateData, files, userId) => {
-    const { title, content, country, city, public: isPublic } = updateData;
+    const { title, content, country, rating, city, public: isPublic,dateVisited } = updateData;
     const entry = await JournalEntry.findById(id);
 
     if (!entry) throw new Error('Journal entry not found');
@@ -125,6 +127,7 @@ const updateJournalEntry = async (id, updateData, files, userId) => {
 
     // Update fields
     entry.title = title || entry.title;
+    entry.rating = rating || entry.rating
     entry.content = content || entry.content;
     if (country || city) {
         entry.location = {
@@ -133,6 +136,7 @@ const updateJournalEntry = async (id, updateData, files, userId) => {
         };
     }
     if (isPublic !== undefined) entry.public = isPublic;
+    if (dateVisited) entry.dateVisited = new Date(dateVisited);
 
     await entry.save();
 

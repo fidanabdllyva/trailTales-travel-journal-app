@@ -272,26 +272,36 @@ const CreateJournal = () => {
 
             {/* Actions */}
             <div className="flex gap-2">
+              {/* Publish Entry */}
               <Button
                 type="submit"
-                onClick={() => setPublishing(true)}
-                disabled={formik.isSubmitting || savingDraft}
+                disabled={formik.isSubmitting || savingDraft || publishing}
               >
                 {publishing ? "Publishing..." : "Publish Entry"}
               </Button>
 
+              {/* Save as Draft */}
               <Button
                 type="button"
                 variant="outline"
                 onClick={async () => {
+                  // Trigger validation first
+                  const valid = await formik.validateForm();
+                  if (Object.keys(valid).length > 0) {
+                    // There are validation errors, do not proceed
+                    toast.error("Please fix form errors before saving draft.");
+                    return;
+                  }
+
                   setSavingDraft(true);
                   await handleSubmit(formik.values, true);
                   setSavingDraft(false);
                 }}
-                disabled={formik.isSubmitting || publishing}
+                disabled={formik.isSubmitting || publishing || savingDraft}
               >
                 {savingDraft ? "Saving..." : "Save as Draft"}
               </Button>
+
               <Button type="button" variant="ghost" onClick={() => navigate("/dashboard")}>
                 Cancel
               </Button>
