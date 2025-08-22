@@ -56,24 +56,42 @@ const createTravelList = async (listData, file, userId) => {
     }
 };
 
-// Get public lists
-const getPublicTravelLists = async (page = 1, limit = 10, tag) => {
-    const skip = (page - 1) * limit;
-    const query = { isPublic: true };
-    if (tag) query.tags = tag;
+const getPublicTravelLists = async (params = {}) => {
+  const { page = 1, limit = 3, tag, excludeUserId } = params;
+  const skip = (page - 1) * limit;
 
-    const lists = await TravelListModel.find(query)
-        .populate('owner', 'username fullName profileImage')
-        .populate('collaborators', 'username fullName profileImage')
-        .populate('destinations', '-listId')
-        .sort({ createdAt: -1 })
-        .skip(skip)
-        .limit(parseInt(limit));
+  const query = { isPublic: true };
 
-    const total = await TravelListModel.countDocuments(query);
+  if (tag) {
+    query.tags = { $in: [tag] };
+  }
 
-    return { lists, totalPages: Math.ceil(total / limit), currentPage: parseInt(page), total };
+  if (excludeUserId) {
+      query.owner = { $ne: excludeUserId };
+    }
+
+  console.log("Final Query (service):", query);
+
+  const lists = await TravelListModel.find(query)
+    .populate("owner", "username fullName profileImage")
+    .populate("collaborators", "username fullName profileImage")
+    .populate("destinations", "-listId")
+    .sort({ createdAt: -1 })
+    .skip(skip)
+    .limit(parseInt(limit));
+
+  const total = await TravelListModel.countDocuments(query);
+
+  return {
+    lists,
+    totalPages: Math.ceil(total / limit),
+    currentPage: parseInt(page),
+    total,
+  };
 };
+
+
+
 
 // Get all lists for a user (owner + collaborator)
 const getAllLists = async (userId) => {

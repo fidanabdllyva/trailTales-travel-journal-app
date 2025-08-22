@@ -23,17 +23,21 @@ export const createTravelList = async (
 };
 
 // Public lists (paginated)
-export const getPublicTravelLists = async (
-  params?: { page?: number; limit?: number; tag?: string }
-) => {
+export const getPublicTravelLists = async (params?: {
+  page?: number;
+  limit?: number;
+  tag?: string;
+  excludeUserId?: string
+}) => {
   try {
     const response = await instance.get(`${endpoints.list}/public`, { params });
-    return response.data;
+    return response.data.data;
   } catch (error) {
     console.error("Failed to fetch public travel lists:", error);
     throw error;
   }
 };
+
 
 // User’s own lists
 export const getUserTravelLists = async (): Promise<

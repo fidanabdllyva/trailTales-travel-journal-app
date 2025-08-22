@@ -45,17 +45,19 @@ const createJournalEntry = async (entryData, files, userId) => {
 };
 
 const getJournalEntries = async (params = {}) => {
-    const { country, city, author, public: isPublic, page = 1, limit = 10 } = params;
+    const { country, city, author, excludeUserId, page = 1, limit = 10 } = params;
     const skip = (page - 1) * limit;
 
-    const query = {};
+    // Always filter only public entries
+    const query = { public: true };
     if (country) query['location.country'] = country;
     if (city) query['location.city'] = city;
     if (author) query.author = author;
-    if (isPublic !== undefined) query.public = isPublic;
+    if (excludeUserId) query.author = { $ne: excludeUserId }; // Exclude own entries
 
     const entries = await JournalEntry.find(query)
         .populate('author', 'username fullName profileImage')
+        .populate('likes.userId', 'username profileImage')
         .populate({
             path: 'comments',
             populate: {
@@ -77,9 +79,12 @@ const getJournalEntries = async (params = {}) => {
     };
 };
 
+
+
 const getJournalEntryById = async (id, userId) => {
     const entry = await JournalEntry.findById(id)
         .populate('author', 'username fullName profileImage')
+        .populate("likes.userId", "username profileImage")
         .populate({
             path: 'comments',
             populate: {
@@ -166,8 +171,7 @@ const removePhoto = async (id, photoUrl, userId) => {
 };
 
 const toggleLike = async (entryId, userId) => {
-    const entry = await JournalEntry.findById(entryId)
-    .populate("author", "username profileImage fullName");
+    const entry = await JournalEntry.findById(entryId);
     if (!entry) throw new Error('Journal entry not found');
 
     const index = entry.likes.findIndex(like => like.userId.toString() === userId.toString());
@@ -178,17 +182,22 @@ const toggleLike = async (entryId, userId) => {
     }
 
     await entry.save();
-    return entry;
+
+    // Re-populate before returning
+    return await JournalEntry.findById(entry._id)
+        .populate("author", "username profileImage fullName")
+        .populate("likes.userId", "username profileImage");
 };
 
+
 const getUserOwnJournalEntry = async (userId) => {
-  return await JournalEntryModel.find({ author: userId })
-    .populate("author", "username profileImage fullName") // populate journal author
-    .populate("likes.userId", "username profileImage")    // populate users who liked
-    .populate({
-      path: "comments",
-      populate: { path: "author", select: "username profileImage" }, // populate comment authors
-    });
+    return await JournalEntryModel.find({ author: userId })
+        .populate("author", "username profileImage fullName")
+        .populate("likes.userId", "username profileImage")
+        .populate({
+            path: "comments",
+            populate: { path: "author", select: "username profileImage" },
+        });
 };
 
 

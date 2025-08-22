@@ -27,15 +27,23 @@ export const getJournalEntries = async (params?: {
   }
 };
 
-export const getPublicJournalEntries = async (params?: { page?: number; limit?: number }) => {
+export const getPublicJournalEntries = async (params?: {
+  destination?: string;
+  author?: string;
+  public?: boolean;
+  page?: number;
+  limit?: number;
+  excludeUserId?: string; 
+}) => {
   try {
-    const response = await instance.get(`${endpoints.journal}/public`, { params });
+    const response = await instance.get(`${endpoints.journal}`, { params });
     return response.data;
   } catch (error) {
-    console.error("Failed to fetch public journal entries:", error);
+    console.error("Failed to fetch journal entries:", error);
     throw error;
   }
 };
+
 
 export const getJournalEntryById = async (id: string) => {
   try {
@@ -57,12 +65,12 @@ export const updateJournalEntry = async (id: string, formData: FormData) => {
   }
 };
 
-export const getUserOwnJournal= async()=>{
-  try{
+export const getUserOwnJournal = async () => {
+  try {
     const response = await instance.get(`${endpoints.journal}/user`)
-      return response.data
+    return response.data
   }
-  catch(error){
+  catch (error) {
     console.error("Failed to fetch user own journal entries")
     throw error
   }
@@ -71,7 +79,7 @@ export const getUserOwnJournal= async()=>{
 export const deleteJournalEntry = async (id: string) => {
   try {
     const response = await instance.delete(`${endpoints.journal}/${id}`);
-    return response.data; 
+    return response.data;
   } catch (error) {
     console.error(`Failed to delete journal entry ${id}:`, error);
     throw error;

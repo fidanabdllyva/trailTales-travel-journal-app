@@ -177,7 +177,7 @@ export default function TravelListChat({ listId }: TravelListProps) {
                                             </span>
                                         )}
                                         <span
-                                            className={`rounded-lg px-3 py-2 text-sm break-all ${isYou
+                                            className={`rounded-lg px-3 py-2 text-sm overflow-hidden text-ellipsis break-all ${isYou
                                                     ? "bg-black text-white"
                                                     : "bg-gray-100 text-gray-900"
                                                 }`}
