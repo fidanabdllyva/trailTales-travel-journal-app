@@ -1,18 +1,25 @@
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import type { TravelListType } from "@/types/TravelListType";
 import ExploreListCard from "@/components/client/ExploreListCard";
 import { useEffect, useState } from "react";
 import { getPublicTravelLists } from "@/api/requests/travelListService";
 import { useSelector } from "react-redux";
 import type { RootState } from "@/redux/store";
+import JournalEntriesMock from "@/components/client/ExploreJournalCard";
+import { motion } from "framer-motion";
 
 const Explore = () => {
   const [travelLists, setTravelLists] = useState<TravelListType[]>([]);
   const [loading, setLoading] = useState(false);
-  const currentUserId=useSelector((s:RootState)=>s.user.data?.id)
+  const currentUserId = useSelector((s: RootState) => s.user.data?.id);
 
   useEffect(() => {
     const fetchTravelLists = async () => {
@@ -21,7 +28,7 @@ const Explore = () => {
         const response = await getPublicTravelLists();
         const allLists = response?.data?.lists || [];
 
-        // 👇 filter out current user's lists
+
         const filteredLists = allLists.filter(
           (list: TravelListType) => list.owner?.id !== currentUserId
         );
@@ -38,14 +45,14 @@ const Explore = () => {
     fetchTravelLists();
   }, [currentUserId]);
 
-
   return (
     <div className="max-w-7xl mx-auto p-6">
       {/* Header */}
       <div className="text-center space-y-2 mb-8">
         <h1 className="text-4xl font-bold">Explore Travel Inspiration</h1>
         <p className="text-muted-foreground mt-3">
-          Discover amazing destinations and read inspiring travel stories from our community
+          Discover amazing destinations and read inspiring travel stories from
+          our community
         </p>
       </div>
 
@@ -73,28 +80,55 @@ const Explore = () => {
       {/* Tabs */}
       <Tabs defaultValue="lists">
         <TabsList className="mb-6 mx-auto w-md">
-          <TabsTrigger value="lists" className="py-4">Travel Lists</TabsTrigger>
-          <TabsTrigger value="journal" className="py-4">Journal Entries</TabsTrigger>
+          <TabsTrigger value="lists" className="py-4">
+            Travel Lists
+          </TabsTrigger>
+          <TabsTrigger value="journal" className="py-4">
+            Journal Entries
+          </TabsTrigger>
         </TabsList>
 
         {/* Travel Lists */}
         <TabsContent value="lists">
           {loading ? (
             <div className="text-center py-12">Loading...</div>
+          ) : travelLists.length === 0 ? (
+            <div className="text-center text-muted-foreground py-12">
+              No destinations yet.
+            </div>
           ) : (
+                <motion.div
+      initial={{ opacity: 0, y: 12 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.25 }}
+      className="h-full"
+    >
             <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
               {travelLists.map((list) => (
                 <ExploreListCard key={list.id} list={list} />
               ))}
             </div>
+    </motion.div>
           )}
         </TabsContent>
 
         {/* Journal Entries */}
         <TabsContent value="journal">
-          <div className="text-center text-muted-foreground py-12">
-            No journal entries yet.
-          </div>
+          {loading ? (
+            <div className="text-center py-12">Loading...</div>
+          ) : (
+            <>
+              {/* Replace JournalEntriesMock with real data fetch later */}
+              <JournalEntriesMock />
+              {/* If no data, show fallback */}
+              {/* Example: conditionally render */}
+              {/* {journals.length === 0 && ( */}
+              <div className="text-center text-muted-foreground py-12">
+                No journal entries yet.
+              </div>
+              {/* )} */}
+            </>
+          )}
         </TabsContent>
       </Tabs>
     </div>
