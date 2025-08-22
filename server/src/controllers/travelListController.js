@@ -27,25 +27,32 @@ module.exports = {
     },
 
     // Get all public travel lists
-    async getPublicLists(req, res, next) {
-        try {
-            const { page, limit, tag } = req.query;
-            const result = await travelListService.getPublicTravelLists(page, limit, tag);
+  async getPublicLists(req, res, next) {
+  try {
+    const { page, limit, tag, excludeUserId } = req.query;
 
-            res.json({
-                message: 'Public travel lists retrieved successfully!',
-                data: {
-                    lists: formatMongoData(result.lists),
-                    totalPages: result.totalPages,
-                    currentPage: result.currentPage,
-                    total: result.total
-                }
-            });
-        } catch (error) {
-            next(error);
-        }
-    },
 
+    const result = await travelListService.getPublicTravelLists({
+      page,
+      limit,
+      tag,
+      excludeUserId,
+    });
+
+
+    res.json({
+      message: "Public travel lists retrieved successfully!",
+      data: {
+        lists: formatMongoData(result.lists),
+        totalPages: result.totalPages,
+        currentPage: result.currentPage,
+        total: result.total,
+      },
+    });
+  } catch (error) {
+    next(error);
+  }
+},
     // Get all lists for the logged-in user
     async getAllLists(req, res, next) {
         try {
@@ -121,33 +128,33 @@ module.exports = {
         }
     },
 
-   async updateList(req, res, next) {
-    try {
-        const { id } = req.params;
-        const userId = req.user.id;
-        const { title, description, tags, isPublic } = req.body;
-        const file = req.file;
+    async updateList(req, res, next) {
+        try {
+            const { id } = req.params;
+            const userId = req.user.id;
+            const { title, description, tags, isPublic } = req.body;
+            const file = req.file;
 
-        const updateData = { title, description, tags, isPublic };
+            const updateData = { title, description, tags, isPublic };
 
-        const response = await travelListService.updateTravelList(id, updateData, userId, file);
+            const response = await travelListService.updateTravelList(id, updateData, userId, file);
 
-        if (!response.success) {
-            const statusCode = response.message === "Travel list not found" ? 404 : 403;
-            return res.status(statusCode).json({
+            if (!response.success) {
+                const statusCode = response.message === "Travel list not found" ? 404 : 403;
+                return res.status(statusCode).json({
+                    message: response.message,
+                    data: null,
+                });
+            }
+
+            res.status(200).json({
                 message: response.message,
-                data: null,
+                data: formatMongoData(response.data),
             });
+        } catch (error) {
+            next(error);
         }
-
-        res.status(200).json({
-            message: response.message,
-            data: formatMongoData(response.data),
-        });
-    } catch (error) {
-        next(error);
-    }
-},
+    },
     // Delete a travel list
     async deleteList(req, res, next) {
         try {
@@ -176,7 +183,7 @@ module.exports = {
     // Add collaborator (send invitation email)
     async addCollaboratorToList(req, res, next) {
         try {
-            const { id } = req.params; 
+            const { id } = req.params;
             const { email } = req.body;
             const userId = req.user.id;
 
@@ -205,7 +212,7 @@ module.exports = {
             // Invitation sent successfully
             res.status(200).json({
                 message: response.message,
-                data: null, 
+                data: null,
             });
         } catch (error) {
             next(error);

@@ -17,49 +17,68 @@ import { motion } from "framer-motion";
 import type { JournalEntryType } from "@/types/JournalEntryType";
 import { getPublicJournalEntries } from "@/api/requests/journalEntryService";
 import ExploreJournalCard from "@/components/client/ExploreJournalCard";
+import {
+  Pagination,
+  PaginationContent,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from "@/components/ui/pagination";
 
 const Explore = () => {
   const [travelLists, setTravelLists] = useState<TravelListType[]>([]);
-  const [journals, setJournals] = useState<JournalEntryType[]>([])
+  const [journals, setJournals] = useState<JournalEntryType[]>([]);
   const [loading, setLoading] = useState(false);
+
+  // pagination states
+  const [listPage, setListPage] = useState(1);
+  const [journalPage, setJournalPage] = useState(1);
+  const [listTotalPages, setListTotalPages] = useState(1);
+  const [journalTotalPages, setJournalTotalPages] = useState(1);
+
+  const limit = 3;
   const currentUserId = useSelector((s: RootState) => s.user.data?.id);
 
+  // Fetch Travel Lists
   useEffect(() => {
+    if (!currentUserId) return;
     const fetchTravelLists = async () => {
       setLoading(true);
       try {
-        const response = await getPublicTravelLists();
-        const allLists = response?.data?.lists || [];
-
-
-        const filteredLists = allLists.filter(
-          (list: TravelListType) => list.owner?.id !== currentUserId
-        );
-
-        setTravelLists(filteredLists);
+        const response = await getPublicTravelLists({
+          page: listPage,
+          limit,
+          excludeUserId: currentUserId,
+        });
+        setTravelLists(response?.lists || []);
+        setListTotalPages(response?.totalPages || 1);
       } catch (error) {
         console.error("Failed to fetch travel lists:", error);
-        setTravelLists([]); // fallback
+        setTravelLists([]);
       } finally {
         setLoading(false);
       }
     };
-
     fetchTravelLists();
-  }, [currentUserId]);
+  }, [currentUserId, listPage]);
 
+  // Fetch Journals
   useEffect(() => {
+    if (!currentUserId) return;
     const fetchJournals = async () => {
       setLoading(true);
       try {
-        const response = await getPublicJournalEntries({ page: 1, limit: 10 });
-        const allJournals = response?.entries || [];
-console.log(allJournals)
-        const filteredJournals = allJournals.filter(
-          (entry: JournalEntryType) => entry.author?.id !== currentUserId
-        );
+        const response = await getPublicJournalEntries({
+          page: journalPage,
+          limit,
+          excludeUserId: currentUserId,
+        });
 
-        setJournals(filteredJournals);
+        console.log('Travel Lists Response:', response);
+
+        setJournals(response?.entries || []);
+        setJournalTotalPages(response?.totalPages || 1);
       } catch (error) {
         console.error("Failed to fetch journals:", error);
         setJournals([]);
@@ -67,10 +86,50 @@ console.log(allJournals)
         setLoading(false);
       }
     };
-
     fetchJournals();
-  }, [currentUserId]);
+  }, [currentUserId, journalPage]);
 
+  // Helper to render pagination
+  const renderPagination = (
+    currentPage: number,
+    totalPages: number,
+    onChange: (page: number) => void
+  ) => {
+    if (totalPages <= 1) return null;
+
+    return (
+      <Pagination className="mt-6">
+        <PaginationContent>
+          <PaginationItem>
+            <PaginationPrevious
+              onClick={() => onChange(Math.max(1, currentPage - 1))}
+              className={currentPage === 1 ? "pointer-events-none opacity-50" : ""}
+            />
+          </PaginationItem>
+
+          {Array.from({ length: totalPages }).map((_, i) => (
+            <PaginationItem key={i}>
+              <PaginationLink
+                isActive={i + 1 === currentPage}
+                onClick={() => onChange(i + 1)}
+              >
+                {i + 1}
+              </PaginationLink>
+            </PaginationItem>
+          ))}
+
+          <PaginationItem>
+            <PaginationNext
+              onClick={() => onChange(Math.min(totalPages, currentPage + 1))}
+              className={
+                currentPage === totalPages ? "pointer-events-none opacity-50" : ""
+              }
+            />
+          </PaginationItem>
+        </PaginationContent>
+      </Pagination>
+    );
+  };
 
   return (
     <div className="max-w-7xl mx-auto p-6">
@@ -124,18 +183,21 @@ console.log(allJournals)
               No destinations yet.
             </div>
           ) : (
-            <motion.div
-              initial={{ opacity: 0, y: 12 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.25 }}
-              className="h-full"
-            >
-              <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-                {travelLists.map((list) => (
-                  <ExploreListCard key={list.id} list={list} />
-                ))}
-              </div>
-            </motion.div>
+            <>
+              <motion.div
+                initial={{ opacity: 0, y: 12 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.25 }}
+                className="h-full"
+              >
+                <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+                  {travelLists.map((list) => (
+                    <ExploreListCard key={list.id} list={list} />
+                  ))}
+                </div>
+              </motion.div>
+              {renderPagination(listPage, listTotalPages, setListPage)}
+            </>
           )}
         </TabsContent>
 
@@ -148,17 +210,20 @@ console.log(allJournals)
               No journal entries yet.
             </div>
           ) : (
-            <motion.div
-              initial={{ opacity: 0, y: 12 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.25 }}
-            >
-              <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-                {journals.map((journal) => (
-                  <ExploreJournalCard key={journal.id} journal={journal} />
-                ))}
-              </div>
-            </motion.div>
+            <>
+              <motion.div
+                initial={{ opacity: 0, y: 12 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.25 }}
+              >
+                <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+                  {journals.map((journal) => (
+                    <ExploreJournalCard key={journal.id} journal={journal} />
+                  ))}
+                </div>
+              </motion.div>
+              {renderPagination(journalPage, journalTotalPages, setJournalPage)}
+            </>
           )}
         </TabsContent>
       </Tabs>

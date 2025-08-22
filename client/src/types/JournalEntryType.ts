@@ -1,7 +1,12 @@
 import type { User } from "./UserType";
 
 export interface Like {
-  user: User;
+  userId: {
+    id: string;
+    username: string;
+    profileImage: string;
+  };
+  id:string
   createdAt: Date;
 }
 
@@ -18,6 +23,6 @@ export interface JournalEntryType {
   };
   author: User;
   public: boolean;
-  createdAt:  string;
-  updatedAt:  string;
+  createdAt: string;
+  updatedAt: string;
 }
