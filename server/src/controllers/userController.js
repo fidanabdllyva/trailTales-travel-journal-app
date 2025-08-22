@@ -202,7 +202,7 @@ exports.login = async (req, res, next) => {
     };
     const response = await login(credentials);
 
-    console.log("RESPONSE ON SERVER: ", response);
+
 
     // Set refresh token cookie (HttpOnly)
     res.cookie("refreshToken", response.refreshToken, {
