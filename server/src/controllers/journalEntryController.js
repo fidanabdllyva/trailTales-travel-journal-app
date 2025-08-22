@@ -31,8 +31,9 @@ module.exports = {
 
     async updateJournalEntry(req, res) {
         try {
-            const entry = await journalService.updateJournalEntry(req.params.id, req.body, req.file, req.user.id);
+            const entry = await journalService.updateJournalEntry(req.params.id, req.body, req.files, req.user.id);
             res.json(formatMongoData(entry));
+
         } catch (err) {
             res.status(403).json({ message: err.message });
         }
@@ -62,6 +63,20 @@ module.exports = {
             res.json(formatMongoData(entry));
         } catch (err) {
             res.status(403).json({ message: err.message });
+        }
+    },
+
+    async getUserOwnJournalEntry(req,res){
+         try {
+            const userId = req.user.id;
+            const journals = await journalService.getUserOwnJournalEntry(userId);
+
+            res.status(200).json({
+                message: "User's journals retrieved successfully!",
+                data: formatMongoData(journals),
+            });
+        } catch (error) {
+            next(error);
         }
     }
 };

@@ -13,7 +13,7 @@ const destinationRouter=require("./src/routes/destinationRoute")
 const journalEntryRouter = require("./src/routes/journalEntryRoute")
 const chatRouter = require("./src/routes/chatRoute");
 const messageRouter = require("./src/routes/messageRoute");
-
+const commentRouter = require("./src/routes/commentRoute")
 
 const app = express();
 
@@ -42,6 +42,7 @@ app.use("/destination", destinationRouter)
 app.use("/journal", journalEntryRouter)
 app.use("/chat", chatRouter);
 app.use("/message", messageRouter);
+app.use("/comments",commentRouter)
 
 app.use(passport.initialize());
 app.use("/auth", googleAuthRoute); 
