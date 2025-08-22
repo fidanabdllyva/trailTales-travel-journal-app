@@ -1,12 +1,11 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   MapPin, CheckCircle2, Users2, Pencil,
-  Share2, CalendarDays
+  Share2
 } from "lucide-react";
 import type { TravelListType } from "@/types/TravelListType";
 import { getTravelList } from "@/api/requests/travelListService";
