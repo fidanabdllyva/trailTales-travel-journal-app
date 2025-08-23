@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarImage } from "@/components/ui/avatar";
-import {  Heart, MapPin, MessageCircle, Send, Trash2 } from "lucide-react";
+import { Heart, MapPin, MessageCircle, Send, Trash2 } from "lucide-react";
 import type { JournalEntryType, Like } from "@/types/JournalEntryType";
 import { getJournalEntryById, toggleLike } from "@/api/requests/journalEntryService";
 import { createComment, getCommentsByJournal, deleteComment } from "@/api/requests/commentsService";
@@ -131,10 +131,13 @@ const JournalDetail = () => {
               </div>
             </div>
 
-            <JournalActions
-              journal={journal}
-              onJournalUpdate={(updatedJournal) => setJournal(updatedJournal)}
-            />
+            {journal.author.id === currentUserId && (
+              <JournalActions
+                journal={journal}
+                onJournalUpdate={(updatedJournal) => setJournal(updatedJournal)}
+              />
+            )}
+
           </div>
 
           <div className="flex-1 p-4 overflow-y-auto">
