@@ -1,12 +1,22 @@
-import { useTheme } from "next-themes"
-import { Toaster as Sonner, ToasterProps } from "sonner"
+import { useState, useEffect } from "react";
+import { Toaster as Sonner, type ToasterProps } from "sonner";
 
 const Toaster = ({ ...props }: ToasterProps) => {
-  const { theme = "system" } = useTheme()
+  const [theme, setTheme] = useState<ToasterProps["theme"]>("light");
+
+  // Example: detect system preference
+  useEffect(() => {
+    const darkMedia = window.matchMedia("(prefers-color-scheme: dark)");
+    const updateTheme = () => setTheme(darkMedia.matches ? "dark" : "light");
+    darkMedia.addEventListener("change", updateTheme);
+    updateTheme();
+
+    return () => darkMedia.removeEventListener("change", updateTheme);
+  }, []);
 
   return (
     <Sonner
-      theme={theme as ToasterProps["theme"]}
+      theme={theme}
       className="toaster group"
       style={
         {
@@ -17,7 +27,7 @@ const Toaster = ({ ...props }: ToasterProps) => {
       }
       {...props}
     />
-  )
-}
+  );
+};
 
-export { Toaster }
+export { Toaster };

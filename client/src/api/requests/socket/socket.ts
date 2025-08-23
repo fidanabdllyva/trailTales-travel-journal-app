@@ -14,7 +14,8 @@ export function connectSocket(userId: string) {
       withCredentials: true,
       transports: ["websocket"],
       reconnection: true,
-      auth: { token },
+     auth: { token, userId },
+
     });
 
     socket.on("connect", () => console.log("✅ Socket connected:", socket?.id));
@@ -39,11 +40,18 @@ export function onNewMessage(cb: (msg: any) => void) {
   socket.on("newMessage", cb);
 }
 
-export function sendSocketMessage(data: { chatId: string; authorId: string; text: string; clientId?: string; files?: any }) {
+export function sendSocketMessage(data: {
+  chatId: string;
+  authorId: string;
+  text?: string;
+  clientId?: string;
+  files?: { type: string; name: string; data: string }[];
+}) {
   if (!socket) return;
   console.log("🔹 sendSocketMessage:", data);
   socket.emit("sendMessage", data);
 }
+
 
 export function disconnectSocket() {
   if (!socket) return;

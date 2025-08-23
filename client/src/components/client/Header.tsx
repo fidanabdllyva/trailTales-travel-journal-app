@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { LogOut, Plus, Search, UserIcon, Users } from "lucide-react";
+import { LogOut, Plus, UserIcon, Users } from "lucide-react";
 import { Link, NavLink, useNavigate } from "react-router-dom";
 import {
   DropdownMenu,
@@ -75,14 +75,7 @@ export default function Header() {
       </div>
 
       <div className="flex items-center space-x-4">
-        <div className="flex items-center space-x-2 border px-2 rounded-md bg-white shadow-sm focus-within:ring-2 focus-within:ring-blue-500 focus-within:ring-offset-0">
-          <Search className="text-gray-400 w-4 h-4" />
-          <input
-            type="text"
-            placeholder="Search destinations, lists..."
-            className="w-100 border-none py-2 outline-none"
-          />
-        </div>
+       
 
         <Link to={"/travel-list/create"} className="flex items-center">
           <Button className="flex items-center cursor-pointer space-x-1 bg-gradient-to-r from-blue-500 to-purple-500 text-white">

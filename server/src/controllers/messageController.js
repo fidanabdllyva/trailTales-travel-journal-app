@@ -13,22 +13,40 @@ async function httpList(req, res) {
   }
 }
 
+// controllers/messageController.js
 
 async function httpSendMessage(req, res) {
   try {
-    // FIX: get chatId from body, not req.chatId
-    const { chatId, text, clientId, files } = req.body;
-    const authorId = req.user && req.user.id;
+    const { chatId, text, clientId } = req.body;
+    const authorId = req.user?.id;
 
-    if (!chatId) {
-      return res.status(400).json({ message: "chatId is required" });
-    }
+    if (!chatId) return res.status(400).json({ message: "chatId is required" });
 
-    if (!text?.trim() && (!files || files.length === 0)) {
+    // Handle uploaded files
+    const files = (req.files || []).map((file) => {
+      if (file.mimetype.startsWith("image")) return { type: "image", url: `/uploads/${file.filename}` };
+      if (file.mimetype.startsWith("audio")) return { type: "audio", url: `/uploads/${file.filename}` };
+      return { type: "file", url: `/uploads/${file.filename}`, name: file.originalname };
+    });
+
+    if (!text?.trim() && files.length === 0) {
       return res.status(400).json({ message: "Empty message" });
     }
 
-    const msg = await sendMessage({ chatId, authorId, text, clientId, files });
+    // Transform files to match MessageBody structure
+    const body = {
+      text: text?.trim() || undefined,
+    };
+    files.forEach((f) => {
+      if (f.type === "image") body.imageUrl = f.url;
+      if (f.type === "audio") body.audioUrl = f.url;
+      if (f.type === "file") {
+        body.fileUrl = f.url;
+        body.fileName = f.name;
+      }
+    });
+
+    const msg = await sendMessage({ chatId, authorId, body, clientId });
 
     // Emit via Socket.IO
     const io = req.app.get("io");
@@ -40,5 +58,6 @@ async function httpSendMessage(req, res) {
     res.status(500).json({ ok: false, message: e?.message || "Server error" });
   }
 }
+
 
 module.exports = { httpList, httpSendMessage };

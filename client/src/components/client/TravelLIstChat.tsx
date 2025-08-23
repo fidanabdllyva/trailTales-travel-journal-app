@@ -42,15 +42,13 @@ export default function TravelListChat({ listId }: TravelListProps) {
     useEffect(() => {
         if (!open) return;
 
-        let socket: any;
-
         const initChat = async () => {
             try {
                 const res = await enableChatForList(listId);
                 const groupId = res.chat;
                 setChatId(groupId);
 
-                socket = connectSocket(userId);
+                connectSocket(userId);
                 joinGroup(groupId);
 
                 // Listen for new messages
@@ -177,7 +175,7 @@ export default function TravelListChat({ listId }: TravelListProps) {
                                             </span>
                                         )}
                                         <span
-                                            className={`rounded-lg px-3 py-2 text-sm overflow-hidden text-ellipsis break-all ${isYou
+                                            className={`rounded-lg px-3 py-2 text-sm break-all ${isYou
                                                     ? "bg-black text-white"
                                                     : "bg-gray-100 text-gray-900"
                                                 }`}
