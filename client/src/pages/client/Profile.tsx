@@ -17,6 +17,9 @@ import { buildAchievements, buildRecentActivity } from "@/utils/profileUtil";
 import { getUserOwnJournal } from "@/api/requests/journalEntryService";
 import { getUserTravelLists } from "@/api/requests/travelListService";
 import { getDestinationsByList } from "@/api/requests/destinationService";
+import type { JournalEntryType } from "@/types/JournalEntryType";
+import type { TravelListType } from "@/types/TravelListType";
+import type { DestinationType } from "@/types/DestinationType";
 
 // API services
 
@@ -26,10 +29,11 @@ const ProfilePage = () => {
     (state: RootState) => state.user
   );
 
-  const [journals, setJournals] = useState([]);
-  const [lists, setLists] = useState([]);
-  const [destinations, setDestinations] = useState([]);
-  const [loading, setLoading] = useState(true);
+const [journals, setJournals] = useState<JournalEntryType[]>([]);
+const [lists, setLists] = useState<TravelListType[]>([]);
+const [destinations, setDestinations] = useState<DestinationType[]>([]);
+const [loading, setLoading] = useState(true);
+
 
   // Fetch user-related data
   useEffect(() => {

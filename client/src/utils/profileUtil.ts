@@ -57,7 +57,7 @@ export const buildRecentActivity = (
         title: "Completed destination",
         description: `${dest.location.city}, ${dest.location.country}`,
         date: dest.dateVisited || dest.updatedAt,
-        image: dest.image, // first destination image
+       image: dest.image ?? undefined
       });
     });
 

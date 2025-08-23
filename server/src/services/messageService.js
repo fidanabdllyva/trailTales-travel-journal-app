@@ -22,11 +22,11 @@ async function listGroupMessages(chatId, cursor, limit = 30) {
 /**
  * Send a message in a chat
  */
-async function sendMessage({ chatId, authorId, text, clientId, files }) {
+async function sendMessage({ chatId, authorId, clientId, body }) {
   const msg = await Message.create({
     chat: chatId,
     author: authorId,
-    body: { text: String(text).slice(0, 5000), files },
+    body,
     clientId,
     readBy: [authorId],
   });

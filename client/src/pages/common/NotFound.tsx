@@ -1,6 +1,6 @@
 import { useNavigate } from "react-router-dom";
 import Lottie from "lottie-react";
-import animationData from "../../../public/404.json"
+import animationData from "../../lottie/404.json"
 
 const NotFoundPage = () => {
   const navigate = useNavigate();

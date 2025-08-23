@@ -15,7 +15,6 @@ import TravelListDestinations from "@/components/client/TravelListDestinations";
 import { toast } from "sonner";
 import type { JournalEntryType } from "@/types/JournalEntryType";
 import { getPublicJournalEntries } from "@/api/requests/journalEntryService";
-import type { DestinationType } from "@/types/DestinationType";
 
 // Simple stat card
 function StatCard({
