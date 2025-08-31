@@ -3,7 +3,6 @@ import { useDispatch, useSelector } from "react-redux";
 import { fetchUserProfile } from "@/redux/features/userSlice";
 import { useNavigate, Link } from "react-router-dom";
 import type { RootState } from "@/redux/store";
-import { FiFilter } from "react-icons/fi";
 import { MapPin, Star, Users, Calendar, Search, Plus } from "lucide-react";
 import { MdOutlineWavingHand } from "react-icons/md";
 import { Button } from "@/components/ui/button";
@@ -39,20 +38,9 @@ export default function Dashboard() {
   useEffect(() => {
     Promise.all([getUserTravelLists(), getUserCollaborativeLists()])
       .then(([ownRes, collabRes]) => {
-        console.log("Own lists response:", ownRes);
-        console.log("Collaborative lists response:", collabRes);
-
         setMyLists(ownRes.data ?? []);
 
-        // Check if collaborative API returns invitations instead of full lists
         if (Array.isArray(collabRes.data)) {
-          console.log("Collab raw items:", collabRes.data);
-
-          // If items have only travelList IDs, log them
-          const hasTravelListOnly = collabRes.data.every((c: any) => typeof c.travelList === "string");
-          console.log("Collab has only IDs?", hasTravelListOnly);
-
-          // If only IDs, you’ll need to fetch the full TravelList objects
           setSharedLists(collabRes.data);
         } else {
           setSharedLists([]);
@@ -62,16 +50,15 @@ export default function Dashboard() {
       .finally(() => setLoading(false));
   }, []);
 
-
   // Filter function
   const filterLists = (arr: TravelListType[]) =>
     query.trim()
       ? arr.filter((l) =>
-        [l.title, l.description, ...(l.tags || [])]
-          .join(" ")
-          .toLowerCase()
-          .includes(query.toLowerCase())
-      )
+          [l.title, l.description, ...(l.tags || [])]
+            .join(" ")
+            .toLowerCase()
+            .includes(query.toLowerCase())
+        )
       : arr;
 
   const filteredMy = useMemo(() => filterLists(myLists), [myLists, query]);
@@ -89,8 +76,9 @@ export default function Dashboard() {
     };
   }, [myLists, sharedLists]);
 
+
   if (loading || userStatus === "loading") {
-    return <LoadingSpinner/>;
+    return <LoadingSpinner />;
   }
 
   if (error) {
@@ -145,9 +133,6 @@ export default function Dashboard() {
             className="w-full py-2 outline-none border-none"
           />
         </div>
-        <button className="ml-3 px-4 py-2 flex items-center bg-white gap-2 border rounded-md hover:bg-gray-100">
-          <FiFilter /> Filter
-        </button>
       </div>
 
       {/* Lists */}

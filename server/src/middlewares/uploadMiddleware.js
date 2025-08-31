@@ -25,7 +25,7 @@ function uploadMiddleware(folderName) {
       fileSize: 5 * 1024 * 1024, // keep images size < 5 MB
     },
     fileFilter: (_, file, cb) => {
-      const allowedTypes = ["image/jpeg", "image/png", "image/webp"];
+      const allowedTypes = ["image/jpeg", "image/png", "image/webp","image/avif"];
       if (!allowedTypes.includes(file.mimetype)) {
         const err = new Error("Only JPEG, PNG, and WebP images are allowed");
         err.code = "INVALID_FILE_TYPE";
