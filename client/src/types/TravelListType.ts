@@ -13,7 +13,7 @@ export interface TravelListType {
     public_id: string;
     destinations: DestinationType[];
     chat?: string;
-    createdAt: Date;
+    createdAt: Date | string;
     updatedAt: Date;
 }
 

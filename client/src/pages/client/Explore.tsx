@@ -9,7 +9,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import type { TravelListType } from "@/types/TravelListType";
 import ExploreListCard from "@/components/client/ExploreListCard";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { getPublicTravelLists } from "@/api/requests/travelListService";
 import { useSelector } from "react-redux";
 import type { RootState } from "@/redux/store";
@@ -39,6 +39,13 @@ const Explore = () => {
 
   const limit = 3;
   const currentUserId = useSelector((s: RootState) => s.user.data?.id);
+
+  // search, sort & filters
+  const [searchQuery, setSearchQuery] = useState("");
+  const [sortOption, setSortOption] = useState("popular"); // "popular" | "newest" | "rated"
+  const [filters, setFilters] = useState({
+    year: "all", // all | this | last
+  });
 
   // Fetch Travel Lists
   useEffect(() => {
@@ -74,9 +81,6 @@ const Explore = () => {
           limit,
           excludeUserId: currentUserId,
         });
-
-        console.log('Travel Lists Response:', response);
-
         setJournals(response?.entries || []);
         setJournalTotalPages(response?.totalPages || 1);
       } catch (error) {
@@ -89,6 +93,60 @@ const Explore = () => {
     fetchJournals();
   }, [currentUserId, journalPage]);
 
+  // Filter + Search + Sort function
+  const applyFilters = <
+    T extends {
+      title?: string;
+      description?: string;
+      rating?: number;
+      createdAt?: string | Date
+    }
+  >(
+    items: T[]
+  ): T[] => {
+    let result = [...items];
+
+    // search
+    if (searchQuery.trim()) {
+      result = result.filter((i) =>
+        [i.title, i.description].join(" ").toLowerCase().includes(searchQuery.toLowerCase())
+      );
+    }
+
+    // year filter
+    if (filters.year !== "all") {
+      const thisYear = new Date().getFullYear();
+      result = result.filter((i) => {
+        if (!i.createdAt) return false;
+        const year = new Date(i.createdAt).getFullYear(); // works with string or Date
+        return filters.year === "this" ? year === thisYear : year === thisYear - 1;
+      });
+    }
+
+    // sort
+    switch (sortOption) {
+      case "newest":
+        result.sort((a, b) =>
+          a.createdAt && b.createdAt
+            ? +new Date(b.createdAt) - +new Date(a.createdAt)
+            : 0
+        );
+        break;
+      case "rated":
+        result.sort((a, b) => (b.rating || 0) - (a.rating || 0));
+        break;
+      default: // popular
+        result.sort((a, b) => (b.rating || 0) - (a.rating || 0));
+        break;
+    }
+
+    return result;
+  };
+
+
+  const filteredTravelLists = useMemo(() => applyFilters(travelLists), [travelLists, searchQuery, sortOption, filters]);
+  const filteredJournals = useMemo(() => applyFilters(journals), [journals, searchQuery, sortOption, filters]);
+
   // Helper to render pagination
   const renderPagination = (
     currentPage: number,
@@ -96,7 +154,6 @@ const Explore = () => {
     onChange: (page: number) => void
   ) => {
     if (totalPages <= 1) return null;
-
     return (
       <Pagination className="mt-6">
         <PaginationContent>
@@ -106,24 +163,17 @@ const Explore = () => {
               className={currentPage === 1 ? "pointer-events-none opacity-50" : ""}
             />
           </PaginationItem>
-
           {Array.from({ length: totalPages }).map((_, i) => (
             <PaginationItem key={i}>
-              <PaginationLink
-                isActive={i + 1 === currentPage}
-                onClick={() => onChange(i + 1)}
-              >
+              <PaginationLink isActive={i + 1 === currentPage} onClick={() => onChange(i + 1)}>
                 {i + 1}
               </PaginationLink>
             </PaginationItem>
           ))}
-
           <PaginationItem>
             <PaginationNext
               onClick={() => onChange(Math.min(totalPages, currentPage + 1))}
-              className={
-                currentPage === totalPages ? "pointer-events-none opacity-50" : ""
-              }
+              className={currentPage === totalPages ? "pointer-events-none opacity-50" : ""}
             />
           </PaginationItem>
         </PaginationContent>
@@ -137,8 +187,7 @@ const Explore = () => {
       <div className="text-center space-y-2 mb-8">
         <h1 className="text-4xl font-bold">Explore Travel Inspiration</h1>
         <p className="text-muted-foreground mt-3">
-          Discover amazing destinations and read inspiring travel stories from
-          our community
+          Discover amazing destinations and read inspiring travel stories from our community
         </p>
       </div>
 
@@ -147,19 +196,29 @@ const Explore = () => {
         <Input
           placeholder="Search destinations, lists, or stories..."
           className="w-full bg-white"
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
         />
         <div className="flex items-center gap-3">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="outline">Most Popular</Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent>
-              <DropdownMenuItem>Most Popular</DropdownMenuItem>
-              <DropdownMenuItem>Newest</DropdownMenuItem>
-              <DropdownMenuItem>Top Rated</DropdownMenuItem>
+              <DropdownMenuItem onClick={() => setSortOption("popular")}>Most Popular</DropdownMenuItem>
+              <DropdownMenuItem onClick={() => setSortOption("newest")}>Newest</DropdownMenuItem>
+              <DropdownMenuItem onClick={() => setSortOption("rated")}>Top Rated</DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
-          <Button variant="outline">Filters</Button>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline">Filters</Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent>
+              <DropdownMenuItem onClick={() => setFilters({ ...filters, year: "all" })}>All Years</DropdownMenuItem>
+              <DropdownMenuItem onClick={() => setFilters({ ...filters, year: "this" })}>This Year</DropdownMenuItem>
+              <DropdownMenuItem onClick={() => setFilters({ ...filters, year: "last" })}>Last Year</DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       </div>
 
@@ -178,20 +237,13 @@ const Explore = () => {
         <TabsContent value="lists">
           {loading ? (
             <div className="text-center py-12">Loading...</div>
-          ) : travelLists.length === 0 ? (
-            <div className="text-center text-muted-foreground py-12">
-              No destinations yet.
-            </div>
+          ) : filteredTravelLists.length === 0 ? (
+            <div className="text-center text-muted-foreground py-12">No destinations yet.</div>
           ) : (
             <>
-              <motion.div
-                initial={{ opacity: 0, y: 12 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.25 }}
-                className="h-full"
-              >
+              <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.25 }}>
                 <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-                  {travelLists.map((list) => (
+                  {filteredTravelLists.map((list) => (
                     <ExploreListCard key={list.id} list={list} />
                   ))}
                 </div>
@@ -205,19 +257,13 @@ const Explore = () => {
         <TabsContent value="journal">
           {loading ? (
             <div className="text-center py-12">Loading...</div>
-          ) : journals.length === 0 ? (
-            <div className="text-center text-muted-foreground py-12">
-              No journal entries yet.
-            </div>
+          ) : filteredJournals.length === 0 ? (
+            <div className="text-center text-muted-foreground py-12">No journal entries yet.</div>
           ) : (
             <>
-              <motion.div
-                initial={{ opacity: 0, y: 12 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.25 }}
-              >
+              <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.25 }}>
                 <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-                  {journals.map((journal) => (
+                  {filteredJournals.map((journal) => (
                     <ExploreJournalCard key={journal.id} journal={journal} />
                   ))}
                 </div>
